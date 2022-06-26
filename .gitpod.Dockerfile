@@ -1,5 +1,3 @@
-FROM gitpod/workspace-full:2022-06-09-20-58-43
-SHELL ["/bin/bash", "-c"]
+FROM gitpod/workspace-full:2022-06-20-19-54-55
 
-USER root
-RUN RUN brew tap dart-lang/dart && brew install dart
+RUN brew tap dart-lang/dart && brew install dart
