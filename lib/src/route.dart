@@ -1,19 +1,24 @@
 class Route {
   String method = '';
   bool middleware = true;
-  String path = '';
+  final String _path;
   String description = '';
   List<String> _groups = [];
   static int counter = 0;
-  Map<String, Param> _params = {};
-  Map<String, dynamic> labels = {};
+  final Map<String, Param> _params = {};
+  final Map<String, dynamic> labels = {};
+  final Map<String, Injection> _injections = {};
   late int order;
   late dynamic _action;
+
+  Map<String, Injection> get injections => _injections;
+  Map<String, Param> get params => _params;
+  String get path => _path;
 
   List<String> getGroups() => _groups;
   Function getAction() => _action;
 
-  Route(this.method, this.path) {
+  Route(this.method, this._path) {
     Route.counter++;
     order = counter;
     _action = () {};
@@ -30,12 +35,21 @@ class Route {
   }
 
   Route groups(List<String> groups) {
-    this._groups = groups;
+    _groups = groups;
     return this;
   }
 
   Route label(String key, dynamic value) {
-    this.labels[key] = value;
+    labels[key] = value;
+    return this;
+  }
+
+  Route inject(String injection) {
+    if (_injections.containsKey(injection)) {
+      throw Exception("Injection already declared for $injection");
+    }
+    _injections[injection] =
+        Injection(injection, _params.length + _injections.length);
     return this;
   }
 
@@ -45,15 +59,22 @@ class Route {
       Function? validator,
       String description = '',
       bool optional = false}) {
-    this._params[key] = Param(
+    _params[key] = Param(
         defaultValue: defaultValue,
         validator: validator,
         description: description,
         value: null,
-        count: _params.values.length,
+        order: _params.values.length + _injections.values.length,
         optional: optional);
     return this;
   }
+}
+
+class Injection {
+  final String name;
+  final int order;
+
+  Injection(this.name, this.order);
 }
 
 class Param {
@@ -61,7 +82,7 @@ class Param {
   final Function? validator;
   final String description;
   final dynamic value;
-  final int count;
+  final int order;
   final bool optional;
 
   Param(
@@ -69,6 +90,6 @@ class Param {
       required this.validator,
       required this.description,
       required this.value,
-      required this.count,
+      required this.order,
       required this.optional});
 }
