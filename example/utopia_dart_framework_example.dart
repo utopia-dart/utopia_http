@@ -19,12 +19,24 @@ void main() {
   });
 
   App.get('/users/:userId/jhyap/:messing')
-    .param(key: 'userId', defaultValue: '', description: 'Users unique ID')
-    .param(key: 'messing', defaultValue: 'messing')
-    .inject('response')
-    .action((params) {
+      .param(key: 'userId', defaultValue: '', description: 'Users unique ID')
+      .param(key: 'messing', defaultValue: 'messing')
+      .inject('response')
+      .action((params) {
     print(params);
     params['response'].end('tap tap');
+    return params['response'];
+  });
+
+  App.post('/users')
+      .param(key: 'userId')
+      .param(key: 'name')
+      .param(key: 'email')
+      .inject('response')
+      .inject('request')
+      .action((params) {
+    print(params);
+    params['response'].end(params.toString());
     return params['response'];
   });
 

@@ -10,6 +10,7 @@ class Request {
   static const String patch = 'PATCH';
   static const String delete = 'DELETE';
   static const String head = 'HEAD';
+  static const String options = 'OPTIONS';
 
   final Uri url;
   final String method;
