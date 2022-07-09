@@ -1,23 +1,19 @@
+import 'dart:convert';
 import 'dart:io';
 
 class Response {
   String body;
-  int _status = 200;
+  int status = 200;
   ContentType contentType = ContentType.text;
   bool disablePayload = false;
   final Map<String, String> _headers;
   final List<Cookie> _cookies = [];
 
-  Response(this.body, {int status = 200, Map<String, String>? headers})
-      : _headers = headers ?? {},
-        _status = status;
+  Map<String, String> get headers => _headers;
+  List<Cookie> get cookies => _cookies;
 
-  int get status => _status;
-
-  end(message, {int status = 200}) {
-    body = message;
-    status = 200;
-  }
+  Response(this.body, {this.status = 200, Map<String, String>? headers})
+      : _headers = headers ?? {};
 
   Response addHeader(String key, String value) {
     _headers[key] = value;
@@ -27,6 +23,41 @@ class Response {
   Response removeHeader(String key) {
     _headers.remove(key);
     return this;
+  }
+
+  Response addCookie(Cookie cookie) {
+    _cookies.add(cookie);
+    return this;
+  }
+
+  Response removeCookie(Cookie cookie) {
+    _cookies.removeWhere((element) => element.name == cookie.name);
+    return this;
+  }
+
+  void json(Map<String, dynamic> data) {
+    contentType = ContentType.json;
+    body = jsonEncode(data);
+  }
+
+  void text(String data) {
+    contentType = ContentType.text;
+    body = data;
+  }
+
+  void html(String data) {
+    contentType = ContentType.html;
+    body = data;
+  }
+
+  void noContent() {
+    status = HttpStatus.noContent;
+    body = '';
+  }
+
+  end(message, {int status = 200}) {
+    body = message;
+    status = 200;
   }
 
   Response.s404(String message, {Map<String, String>? headers})
