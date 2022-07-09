@@ -61,7 +61,7 @@ void main() {
           body: request.read()),
       response,
     );
-    return shelf.Response.ok(res.body);
+    return shelf.Response.ok(res.body, headers: res.headers);
   }, 'localhost', 8080);
 }
 

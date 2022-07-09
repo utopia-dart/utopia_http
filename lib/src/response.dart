@@ -9,7 +9,12 @@ class Response {
   final Map<String, String> _headers;
   final List<Cookie> _cookies = [];
 
-  Map<String, String> get headers => _headers;
+  Map<String, String> get headers {
+    _headers[HttpHeaders.setCookieHeader] =
+        _cookies.map((cookie) => cookie.toString()).join(',');
+    return _headers;
+  }
+
   List<Cookie> get cookies => _cookies;
 
   Response(this.body, {this.status = 200, Map<String, String>? headers})
