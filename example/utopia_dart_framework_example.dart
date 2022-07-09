@@ -51,7 +51,7 @@ void main() {
 
   shelf_io.serve((request) async {
     // print(await request.readAsString());
-    final response = Res('');
+    final response = Response('');
     final res = await App().run(
       Request(request.method, request.url,
           headers: request.headers,
@@ -61,20 +61,7 @@ void main() {
           body: request.read()),
       response,
     );
-    return shelf.Response.ok(res.body, headers: res.headers);
+    return shelf.Response(res.status, body: res.body, headers: res.headers);
   }, 'localhost', 8080);
 }
 
-class Res extends Response {
-  Res(super.body);
-
-  @override
-  end(message, {int status = 200}) {
-    body = message;
-    status = status;
-  }
-
-  Res.send(super.message, {int status = 200}) {
-    shelf.Response(status, body: body);
-  }
-}

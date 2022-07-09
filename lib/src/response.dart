@@ -10,6 +10,7 @@ class Response {
   final List<Cookie> _cookies = [];
 
   Map<String, String> get headers {
+    _headers[HttpHeaders.contentTypeHeader] = contentType.toString();
     _headers[HttpHeaders.setCookieHeader] =
         _cookies.map((cookie) => cookie.toString()).join(',');
     return _headers;
