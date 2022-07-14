@@ -1,7 +1,7 @@
 name: utopia_dart_framework
-description: A starting point for Dart libraries or applications.
-version: 1.0.0
-# homepage: https://www.example.com
+description: A light and easy to get started with HTTP framework for Dart
+version: 0.0.1
+homepage: https://github.com/utopia-dart/utopia_dart_framework
 
 environment:
   sdk: '>=2.17.5 <3.0.0'
@@ -10,7 +10,6 @@ dependencies:
   mime: ^1.0.2
   http_parser: ^4.0.1
   string_scanner: ^1.1.1
-#   path: ^1.8.0
 
 dev_dependencies:
   lints: ^2.0.0
