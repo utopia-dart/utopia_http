@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 void main() {
   server.main();
-  group('A group of tests', () {
+  group('Framework', () {
     setUp(() {});
 
     test('Basic Response', () async {
