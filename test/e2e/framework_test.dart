@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'server/server.dart' as server;
+import 'server.dart' as server;
 import 'package:test/test.dart';
 
 void main() {
