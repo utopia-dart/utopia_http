@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:utopia_dart_framework/utopia_dart_framework.dart';
 
-
 void main() async {
   App.get('/hello').inject('request').inject('response').action((params) {
     params['response'].text('Hello World!');
