@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:utopia_dart_framework/src/request.dart';
 import 'package:utopia_dart_framework/src/response.dart';
+import 'package:utopia_dart_framework/src/validation_exception.dart';
 import 'route.dart';
 
 class App {
@@ -212,13 +213,12 @@ class App {
       }
 
       final params = await request.getParams();
+
       route.params.forEach((key, param) {
         final arg = params[key] ?? param.defaultValue;
         var value = values[key] ?? arg;
         value = value == '' || value == null ? param.defaultValue : value;
-
-        // validate
-        // validate(key, param, value);
+        validate(key, param, value);
         args[key] = value;
       });
 
@@ -267,6 +267,11 @@ class App {
         } else {
           error.callback.call();
         }
+      }
+
+      if (e is ValidationException) {
+        final response = getResource('response');
+        response.status = 400;
       }
     }
     return getResource('response');
@@ -331,6 +336,20 @@ class App {
     }
     response.end('Not Found', status: 404);
     return response;
+  }
+
+  void validate(String key, Param param, dynamic value) {
+    if ('' != value && value != null) {
+      final validator = param.validator;
+      if (validator != null) {
+        if (!validator.isValid(value)) {
+          throw ValidationException(
+              'Invalid $key: ${validator.getDescription()}');
+        }
+      }
+    } else if (!param.optional) {
+      throw ValidationException('Param "$key" is not optional.');
+    }
   }
 
   static void reset() {

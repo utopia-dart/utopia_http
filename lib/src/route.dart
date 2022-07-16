@@ -1,3 +1,5 @@
+import 'package:utopia_dart_framework/src/validators/validator.dart';
+
 class Route {
   String method = '';
   bool middleware = true;
@@ -60,7 +62,7 @@ class Route {
   Route param(
       {required String key,
       dynamic defaultValue,
-      Function? validator,
+      Validator? validator,
       String description = '',
       bool optional = false}) {
     _params[key] = Param(
@@ -83,7 +85,7 @@ class Injection {
 
 class Param {
   final dynamic defaultValue;
-  final Function? validator;
+  final Validator? validator;
   final String description;
   final dynamic value;
   final int order;
