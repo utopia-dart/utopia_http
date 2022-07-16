@@ -39,9 +39,13 @@ class Route {
     return this;
   }
 
-  Route label(String key, dynamic value) {
+  Route label(String key, String value) {
     labels[key] = value;
     return this;
+  }
+
+  String? getLabel(String key, {String? defaultValue}) {
+    return labels[key];
   }
 
   Route inject(String injection) {
