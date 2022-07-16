@@ -26,6 +26,16 @@ void main() {
       expect(output, 'myuserid');
     });
 
+    test('Param Validation', () async {
+      final client = HttpClient();
+      final req = await client.getUrl(
+          Uri.parse('http://localhost:3030/users/verylonguseridnotvalidate'));
+      final res = await req.close();
+      final output = await utf8.decodeStream(res);
+      print(output);
+      expect(output, 'Invalid userId: Value must be a valid string and no longer than 10 chars');
+    });
+
     test('JSON', () async {
       final client = HttpClient();
       final req =

@@ -90,7 +90,7 @@ class App {
     if (_errors[group] == null) {
       _errors[group] = [];
     }
-    _errors[group]!.add(Callback(callback, resources));
+    _errors[group]!.add(Callback(callback, ['error', ...resources]));
   }
 
   static Route addRoute(String method, String path) {
@@ -332,6 +332,7 @@ class App {
             error.callback.call();
           }
         }
+        return getResource('response');
       }
     }
     response.end('Not Found', status: 404);

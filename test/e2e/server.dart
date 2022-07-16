@@ -1,14 +1,31 @@
 import 'dart:io';
+import 'package:utopia_dart_framework/src/validation_exception.dart';
+import 'package:utopia_dart_framework/src/validators/text.dart';
 import 'package:utopia_dart_framework/utopia_dart_framework.dart';
 
 void main() async {
+  App.error(
+      callback: (params) {
+        final error = params['error'];
+        final response = params['response'];
+        if (error is ValidationException) {
+          response.status = 400;
+          response.body = error.message;
+        }
+        return response;
+      },
+      resources: ['response']);
   App.get('/hello').inject('request').inject('response').action((params) {
     params['response'].text('Hello World!');
     return params['response'];
   });
 
   App.get('/users/:userId')
-      .param(key: 'userId', defaultValue: '', description: 'Users unique ID')
+      .param(
+          key: 'userId',
+          validator: Text(length: 10),
+          defaultValue: '',
+          description: 'Users unique ID')
       .inject('response')
       .action((params) {
     params['response'].text(params['userId']);

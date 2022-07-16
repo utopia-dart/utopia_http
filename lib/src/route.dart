@@ -47,7 +47,7 @@ class Route {
   }
 
   String? getLabel(String key, {String? defaultValue}) {
-    return labels[key];
+    return labels[key] ?? defaultValue;
   }
 
   Route inject(String injection) {

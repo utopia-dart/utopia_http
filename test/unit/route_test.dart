@@ -33,8 +33,8 @@ void main() async {
   });
 
   test('label', () {
-    expect('default', route.getLabel('key', defaultValue: 'default'));
+    expect(route.getLabel('key', defaultValue: 'default'), 'default');
     route.label('key', 'value');
-    expect('value', route.getLabel('key', defaultValue: 'default'));
+    expect(route.getLabel('key', defaultValue: 'default'), 'value');
   });
 }
