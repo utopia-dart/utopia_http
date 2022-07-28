@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 import 'package:utopia_dart_framework/src/request.dart';
 import 'package:utopia_dart_framework/src/response.dart';
 import 'package:utopia_dart_framework/src/server.dart';
@@ -30,8 +31,8 @@ class App {
   final List _matches = [];
   Route? route;
 
-  static serve(Server server) {
-    server.serve((request) => App().run(request));
+  static Future<HttpServer> serve(Server server) {
+    return server.serve((request) => App().run(request));
   }
 
   static Route get(String url) {

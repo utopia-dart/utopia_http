@@ -66,7 +66,6 @@ class Request {
     if (_payload != null) return _payload!;
 
     final ctype = (contentType ?? 'text/plain').split(';').first;
-    print(ctype);
     switch (ctype) {
       case 'application/json':
         final bodyString = await (encoding ?? utf8).decodeStream(body!);

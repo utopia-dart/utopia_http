@@ -1,9 +1,11 @@
 // import 'dart:io';
+import 'dart:io';
+
 import 'package:utopia_dart_framework/src/validation_exception.dart';
 import 'package:utopia_dart_framework/src/validators/text.dart';
 import 'package:utopia_dart_framework/utopia_dart_framework.dart';
 
-void main() async {
+void initApp() {
   App.error().inject('error').inject('response').action((params) {
     final error = params['error'];
     final response = params['response'];
@@ -44,6 +46,16 @@ void main() async {
     });
     return params['response'];
   });
+}
 
-  final app = App.serve(DefaultServer('localhost', 3030));
+Future<HttpServer> defaultServer() async {
+  App.reset();
+  initApp();
+  return App.serve(DefaultServer('localhost', 3030));
+}
+
+Future<HttpServer> shelfServer() async {
+  App.reset();
+  initApp();
+  return App.serve(ShelfServer('localhost', 3030));
 }
