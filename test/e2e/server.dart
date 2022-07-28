@@ -4,17 +4,15 @@ import 'package:utopia_dart_framework/src/validators/text.dart';
 import 'package:utopia_dart_framework/utopia_dart_framework.dart';
 
 void main() async {
-  App.error(
-      callback: (params) {
-        final error = params['error'];
-        final response = params['response'];
-        if (error is ValidationException) {
-          response.status = 400;
-          response.body = error.message;
-        }
-        return response;
-      },
-      resources: ['response']);
+  App.error().inject('error').inject('response').action((params) {
+    final error = params['error'];
+    final response = params['response'];
+    if (error is ValidationException) {
+      response.status = 400;
+      response.body = error.message;
+    }
+    return response;
+  });
   App.get('/hello').inject('request').inject('response').action((params) {
     params['response'].text('Hello World!');
     return params['response'];

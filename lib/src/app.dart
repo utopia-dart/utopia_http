@@ -4,6 +4,7 @@ import 'package:utopia_dart_framework/src/request.dart';
 import 'package:utopia_dart_framework/src/response.dart';
 import 'package:utopia_dart_framework/src/server.dart';
 import 'package:utopia_dart_framework/src/validation_exception.dart';
+import 'hook.dart';
 import 'route.dart';
 
 class App {
@@ -18,10 +19,10 @@ class App {
   static Map<String, Map<String, Route>> get routes => _routes;
   static final Map<String, ResourceCallback> _resourceCallbacks = {};
   static bool _sorted = false;
-  static final Map<String, List> _errors = {'*': []};
-  static final Map<String, List<Callback>> _init = {'*': []};
-  static final Map<String, List<Callback>> _shutdown = {'*': []};
-  static final Map<String, List<Callback>> _options = {'*': []};
+  static final List<Hook> _errors = [];
+  static final List<Hook> _init = [];
+  static final List<Hook> _shutdown = [];
+  static final List<Hook> _options = [];
 
   final Map<String, dynamic> _resources = {
     'error': null,
@@ -53,48 +54,28 @@ class App {
     return addRoute(Request.delete, url);
   }
 
-  static void init({
-    required Function callback,
-    List<String> resources = const [],
-    String group = '*',
-  }) {
-    if (_init[group] == null) {
-      _init[group] = [];
-    }
-    _init[group]!.add(Callback(callback, resources));
+  static Hook init() {
+    final hook = Hook()..groups(['*']);
+    _init.add(hook);
+    return hook;
   }
 
-  static void shutdown({
-    required Function callback,
-    List<String> resources = const [],
-    String group = '*',
-  }) {
-    if (_shutdown[group] == null) {
-      _shutdown[group] = [];
-    }
-    _shutdown[group]!.add(Callback(callback, resources));
+  static Hook shutdown() {
+    final hook = Hook()..groups(['*']);
+    _shutdown.add(hook);
+    return hook;
   }
 
-  static void options({
-    required Function callback,
-    List<String> resources = const [],
-    String group = '*',
-  }) {
-    if (_options[group] == null) {
-      _options[group] = [];
-    }
-    _options[group]!.add(Callback(callback, resources));
+  static Hook options() {
+    final hook = Hook()..groups(['*']);
+    _options.add(hook);
+    return hook;
   }
 
-  static void error({
-    required Function callback,
-    List<String> resources = const [],
-    String group = '*',
-  }) {
-    if (_errors[group] == null) {
-      _errors[group] = [];
-    }
-    _errors[group]!.add(Callback(callback, ['error', ...resources]));
+  static Hook error() {
+    final hook = Hook()..groups(['*']);
+    _errors.add(hook);
+    return hook;
   }
 
   static Route addRoute(String method, String path) {
@@ -178,6 +159,26 @@ class App {
     return route;
   }
 
+  Map<String, dynamic> _getArguments(
+    Hook hook, {
+    required Map<String, dynamic> requestParams,
+    Map<String, dynamic> values = const {},
+  }) {
+    final args = <String, dynamic>{};
+    hook.params.forEach((key, param) {
+      final arg = requestParams[key] ?? param.defaultValue;
+      var value = values[key] ?? arg;
+      value = value == '' || value == null ? param.defaultValue : value;
+      validate(key, param, value);
+      args[key] = value;
+    });
+
+    hook.injections.forEach((key, injection) {
+      args[key] = getResource(injection.name);
+    });
+    return args;
+  }
+
   FutureOr<Response> execute(Route route, Request request) async {
     final args = {};
     final groups = route.getGroups();
@@ -189,64 +190,48 @@ class App {
         keys.add(m[1]!);
       }
     }
-    final values = {};
+    final values = <String, dynamic>{};
     for (var element in keys) {
       values[element.toString()] = _matches.removeAt(0);
     }
 
     try {
-      if (route.middleware) {
-        // call init functions
-        for (final init in _init['*']!) {
-          if (init.resources.isNotEmpty) {
-            init.callback.call(getResources(init.resources));
-          } else {
-            init.callback.call();
+      if (route.hook) {
+        for (final hook in _init) {
+          if (hook.getGroups().contains('*')) {
+            hook.getAction().call(_getArguments(hook,
+                requestParams: await request.getParams(), values: values));
           }
         }
       }
 
       for (final group in groups) {
-        for (final init in (_init[group] ?? [])) {
-          if (init.resources.isNotEmpty) {
-            init.callback.call(getResources(init.resources));
-          } else {
-            init.callback.call();
+        for (final hook in _init) {
+          if (hook.getGroups().contains(group)) {
+            hook.getAction().call(_getArguments(hook,
+                requestParams: await request.getParams(), values: values));
           }
         }
       }
 
-      final params = await request.getParams();
-
-      route.params.forEach((key, param) {
-        final arg = params[key] ?? param.defaultValue;
-        var value = values[key] ?? arg;
-        value = value == '' || value == null ? param.defaultValue : value;
-        validate(key, param, value);
-        args[key] = value;
-      });
-
-      route.injections.forEach((key, injection) {
-        args[key] = getResource(injection.name);
-      });
+      final args = _getArguments(route,
+          requestParams: await request.getParams(), values: values);
       final response = await route.getAction().call(args);
 
       for (final group in groups) {
-        for (final shutdown in (_shutdown[group] ?? [])) {
-          if (shutdown.resources.isNotEmpty) {
-            shutdown.callback.call(getResources(shutdown.resources));
-          } else {
-            shutdown.callback.call();
+        for (final hook in _shutdown) {
+          if (hook.getGroups().contains(group)) {
+            hook.getAction().call(_getArguments(hook,
+                requestParams: await request.getParams(), values: values));
           }
         }
       }
 
-      if (route.middleware) {
-        for (final shutdown in (_shutdown['*'] ?? [])) {
-          if (shutdown.resources.isNotEmpty) {
-            shutdown.callback.call(getResources(shutdown.resources));
-          } else {
-            shutdown.callback.call();
+      if (route.hook) {
+        for (final hook in _shutdown) {
+          if (hook.getGroups().contains('*')) {
+            hook.getAction().call(_getArguments(hook,
+                requestParams: await request.getParams(), values: values));
           }
         }
       }
@@ -254,22 +239,20 @@ class App {
       return response;
     } on Exception catch (e) {
       for (final group in groups) {
-        for (final error in (_errors[group] ?? [])) {
+        for (final hook in _errors) {
           setResource('error', () => e);
-          if (error.resources.isNotEmpty) {
-            error.callback.call(getResources(error.resources));
-          } else {
-            error.callback.call();
+          if (hook.getGroups().contains(group)) {
+            hook.getAction().call(_getArguments(hook,
+                requestParams: await request.getParams(), values: values));
           }
         }
       }
 
-      for (final error in (_errors['*'] ?? [])) {
+      for (final hook in _errors) {
         setResource('error', () => e);
-        if (error.resources.isNotEmpty) {
-          error.callback.call(getResources(error.resources));
-        } else {
-          error.callback.call();
+        if (hook.getGroups().contains('*')) {
+          hook.getAction().call(_getArguments(hook,
+              requestParams: await request.getParams(), values: values));
         }
       }
 
@@ -318,22 +301,28 @@ class App {
     } else if (method == Request.options) {
       try {
         for (final group in groups) {
-          for (final option in (_options[group] ?? [])) {
-            if (option.resources.isNotEmpty) {
-              option.callback.call(getResources(option.resources));
-            } else {
-              option.callback.call();
+          for (final hook in _options) {
+            if (hook.getGroups().contains(group)) {
+              hook.getAction().call(_getArguments(hook,
+                  requestParams: await request.getParams()));
             }
+          }
+        }
+        for (final hook in _options) {
+          if (hook.getGroups().contains('*')) {
+            hook.getAction().call(_getArguments(
+                  hook,
+                  requestParams: await request.getParams(),
+                ));
           }
         }
         return response;
       } on Exception catch (e) {
-        for (final error in (_errors['*'] ?? [])) {
+        for (final hook in _errors) {
           setResource('error', () => e);
-          if (error.resources.isNotEmpty) {
-            error.callback.call(getResources(error.resources));
-          } else {
-            error.callback.call();
+          if (hook.getGroups().contains('*')) {
+            hook.getAction().call(
+                _getArguments(hook, requestParams: await request.getParams()));
           }
         }
         return getResource('response');
@@ -360,13 +349,9 @@ class App {
   static void reset() {
     _resourceCallbacks.clear();
     _errors.clear();
-    _errors['*'] = [];
     _init.clear();
-    _init['*'] = [];
     _shutdown.clear();
-    _shutdown['*'] = [];
     _options.clear();
-    _options['*'] = [];
     _sorted = false;
   }
 }
