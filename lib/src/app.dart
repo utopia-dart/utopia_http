@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
-
 import 'package:utopia_dart_framework/src/request.dart';
 import 'package:utopia_dart_framework/src/response.dart';
+import 'package:utopia_dart_framework/src/server.dart';
 import 'package:utopia_dart_framework/src/validation_exception.dart';
 import 'route.dart';
 
@@ -28,6 +28,10 @@ class App {
   };
   final List _matches = [];
   Route? route;
+
+  static serve(Server server) {
+    server.serve((request) => App().run(request));
+  }
 
   static Route get(String url) {
     return addRoute(Request.get, url);
@@ -277,10 +281,10 @@ class App {
     return getResource('response');
   }
 
-  FutureOr<Response> run(Request request, Response response) async {
+  FutureOr<Response> run(Request request) async {
     App.setResource('request', () => request);
+    final response = Response('');
     App.setResource('response', () => response);
-
     if (!_sorted) {
       _routes.forEach((method, pathRoutes) {
         _routes[method] =

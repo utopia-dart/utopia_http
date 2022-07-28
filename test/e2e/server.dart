@@ -1,4 +1,4 @@
-import 'dart:io';
+// import 'dart:io';
 import 'package:utopia_dart_framework/src/validation_exception.dart';
 import 'package:utopia_dart_framework/src/validators/text.dart';
 import 'package:utopia_dart_framework/utopia_dart_framework.dart';
@@ -47,25 +47,27 @@ void main() async {
     return params['response'];
   });
 
-  final server = await HttpServer.bind('localhost', 3030);
-  await server.forEach((HttpRequest request) async {
-    final headers = <String, String>{};
-    final headersAll = <String, List<String>>{};
-    request.headers.forEach((name, values) {
-      headersAll[name] = values;
-      headers[name] = values.join(',');
-    });
-    final req = Request(request.method, request.uri,
-        headers: headers,
-        headersAll: headersAll,
-        contentType: request.headers.value(HttpHeaders.contentTypeHeader),
-        body: request);
-    final res = await App().run(req, Response(''));
-    request.response.statusCode = res.status;
-    res.headers.forEach((name, value) {
-      request.response.headers.set(name, value);
-    });
-    request.response.write(res.body);
-    request.response.close();
-  });
+  final app = App.serve(ShelfServer('localhost', 3030));
+
+  // final server = await HttpServer.bind('localhost', 3030);
+  // await server.forEach((HttpRequest request) async {
+  //   final headers = <String, String>{};
+  //   final headersAll = <String, List<String>>{};
+  //   request.headers.forEach((name, values) {
+  //     headersAll[name] = values;
+  //     headers[name] = values.join(',');
+  //   });
+  //   final req = Request(request.method, request.uri,
+  //       headers: headers,
+  //       headersAll: headersAll,
+  //       contentType: request.headers.value(HttpHeaders.contentTypeHeader),
+  //       body: request);
+  //   final res = await App().run(req);
+  //   request.response.statusCode = res.status;
+  //   res.headers.forEach((name, value) {
+  //     request.response.headers.set(name, value);
+  //   });
+  //   request.response.write(res.body);
+  //   request.response.close();
+  // });
 }

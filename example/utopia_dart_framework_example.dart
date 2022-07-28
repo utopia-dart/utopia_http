@@ -49,18 +49,5 @@ void main() {
     return params['response'];
   });
 
-  shelf_io.serve((request) async {
-    // print(await request.readAsString());
-    final response = Response('');
-    final res = await App().run(
-      Request(request.method, request.url,
-          headers: request.headers,
-          headersAll: request.headersAll,
-          encoding: request.encoding,
-          contentType: request.mimeType,
-          body: request.read()),
-      response,
-    );
-    return shelf.Response(res.status, body: res.body, headers: res.headers);
-  }, 'localhost', 8080);
+  final app = App.serve(ShelfServer('localhost', 8080));
 }

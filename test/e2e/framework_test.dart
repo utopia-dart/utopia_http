@@ -33,7 +33,8 @@ void main() {
       final res = await req.close();
       final output = await utf8.decodeStream(res);
       print(output);
-      expect(output, 'Invalid userId: Value must be a valid string and no longer than 10 chars');
+      expect(output,
+          'Invalid userId: Value must be a valid string and no longer than 10 chars');
     });
 
     test('JSON', () async {
