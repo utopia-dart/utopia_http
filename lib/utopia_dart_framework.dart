@@ -1,4 +1,5 @@
-/// Support for doing something awesome.
+/// Utopia Dart Framework is a Dart http framework with minimal must-have
+/// features for profressional, simple, advanced and secure web development
 ///
 /// More dartdocs go here.
 library utopia_dart_framework;
