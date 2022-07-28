@@ -6,8 +6,6 @@ class Route extends Hook {
   final String _path;
   static int counter = 0;
   final Map<String, dynamic> labels = {};
-  late int order;
-
   String get path => _path;
 
   Route(this.method, this._path) : super() {

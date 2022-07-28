@@ -23,13 +23,13 @@ void main() async {
   });
 
   test('resources', () {
-    expect({}, route.injections);
+    expect([], route.injections);
 
     route.inject('user').inject('time').action(() {});
 
     expect(2, route.injections.length);
-    expect('user', route.injections['user']?.name);
-    expect('time', route.injections['time']?.name);
+    expect('user', route.injections[0]);
+    expect('time', route.injections[1]);
   });
 
   test('label', () {

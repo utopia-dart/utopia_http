@@ -17,7 +17,7 @@ class App {
     Request.head: {},
   };
   static Map<String, Map<String, Route>> get routes => _routes;
-  static final Map<String, ResourceCallback> _resourceCallbacks = {};
+  static final Map<String, _ResourceCallback> _resourceCallbacks = {};
   static bool _sorted = false;
   static final List<Hook> _errors = [];
   static final List<Hook> _init = [];
@@ -91,7 +91,7 @@ class App {
       throw Exception('utopia is a reserved resource.');
     }
     _resourceCallbacks[name] =
-        ResourceCallback(name, injections, callback, reset: true);
+        _ResourceCallback(name, injections, callback, reset: true);
   }
 
   dynamic getResource(String name, {bool fresh = false}) {
@@ -173,8 +173,8 @@ class App {
       args[key] = value;
     });
 
-    hook.injections.forEach((key, injection) {
-      args[key] = getResource(injection.name);
+    hook.injections.forEach((injection) {
+      args[injection] = getResource(injection);
     });
     return args;
   }
@@ -356,18 +356,12 @@ class App {
   }
 }
 
-class ResourceCallback {
+class _ResourceCallback {
   final String name;
   final List<String> injections;
   final Function callback;
   final bool reset;
 
-  ResourceCallback(this.name, this.injections, this.callback,
+  _ResourceCallback(this.name, this.injections, this.callback,
       {this.reset = false});
-}
-
-class Callback {
-  final Function callback;
-  final List<String> resources;
-  Callback(this.callback, this.resources);
 }

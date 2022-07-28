@@ -5,11 +5,11 @@ class Hook {
   List<String> _groups = [];
   static int counter = 0;
   final Map<String, Param> _params = {};
-  final Map<String, Injection> _injections = {};
+  final List<String> _injections = [];
   late int order;
   late dynamic _action;
 
-  Map<String, Injection> get injections => _injections;
+  List<String> get injections => _injections;
   Map<String, Param> get params => _params;
 
   List<String> getGroups() => _groups;
@@ -37,11 +37,10 @@ class Hook {
   }
 
   Hook inject(String injection) {
-    if (_injections.containsKey(injection)) {
+    if (_injections.contains(injection)) {
       throw Exception("Injection already declared for $injection");
     }
-    _injections[injection] =
-        Injection(injection, _params.length + _injections.length);
+    _injections.add(injection);
     return this;
   }
 
@@ -56,17 +55,9 @@ class Hook {
         validator: validator,
         description: description,
         value: null,
-        order: _params.values.length + _injections.values.length,
         optional: optional);
     return this;
   }
-}
-
-class Injection {
-  final String name;
-  final int order;
-
-  Injection(this.name, this.order);
 }
 
 class Param {
@@ -74,7 +65,6 @@ class Param {
   final Validator? validator;
   final String description;
   final dynamic value;
-  final int order;
   final bool optional;
 
   Param(
@@ -82,6 +72,5 @@ class Param {
       required this.validator,
       required this.description,
       required this.value,
-      required this.order,
       required this.optional});
 }
