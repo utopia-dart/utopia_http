@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
+import 'app_mode.dart';
 import 'request.dart';
 import 'response.dart';
 import 'server.dart';
@@ -24,6 +25,12 @@ class App {
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
   final List<Hook> _options = [];
+
+  AppMode? mode;
+
+  bool get isProduction => mode == AppMode.production;
+  bool get isDevelopment => mode == AppMode.development;
+  bool get isStage => mode == AppMode.stage;
 
   final Map<String, dynamic> _resources = {
     'error': null,
@@ -394,6 +401,7 @@ class App {
     _shutdown.clear();
     _options.clear();
     _sorted = false;
+    mode = null;
   }
 
   static void resetResources() {
