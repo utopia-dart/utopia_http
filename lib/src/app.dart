@@ -207,7 +207,7 @@ class App {
       final arg = requestParams[key] ?? param.defaultValue;
       var value = values[key] ?? arg;
       value = value == '' || value == null ? param.defaultValue : value;
-      validate(key, param, value);
+      _validate(key, param, value);
       args[key] = value;
     });
 
@@ -224,7 +224,7 @@ class App {
     bool globalHook = false,
     bool reversedExecution = false,
   }) async {
-    dynamic executeGlobalHook() async {
+    Future<void> executeGlobalHook() async {
       if (globalHook) {
         for (final hook in hooks) {
           if (hook.getGroups().contains('*')) {
@@ -238,7 +238,7 @@ class App {
       }
     }
 
-    dynamic executeGroupHooks() async {
+    Future<void> executeGroupHooks() async {
       for (final group in groups) {
         for (final hook in _init) {
           if (hook.getGroups().contains(group)) {
@@ -399,7 +399,7 @@ class App {
     return response;
   }
 
-  void validate(String key, Param param, dynamic value) {
+  void _validate(String key, Param param, dynamic value) {
     if ('' != value && value != null) {
       final validator = param.validator;
       if (validator != null) {
