@@ -185,6 +185,46 @@ class App {
     return args;
   }
 
+  Future<void> _executeHooks(
+    List<Hook> hooks,
+    List<String> groups,
+    Future<Map<String, dynamic>> Function(Hook) argsCallback, {
+    bool globalHook = false,
+    bool reversedExecution = false,
+  }) async {
+    dynamic executeGlobalHook() async {
+      if (globalHook) {
+        for (final hook in hooks) {
+          if (hook.getGroups().contains('*')) {
+            final arguments = await argsCallback.call(hook);
+            Function.apply(hook.getAction(),
+                [...hook.argsOrder.map((key) => arguments[key])]);
+          }
+        }
+      }
+    }
+
+    dynamic executeGroupHooks() async {
+      for (final group in groups) {
+        for (final hook in _init) {
+          if (hook.getGroups().contains(group)) {
+            final arguments = await argsCallback.call(hook);
+            Function.apply(hook.getAction(),
+                [...hook.argsOrder.map((key) => arguments[key])]);
+          }
+        }
+      }
+    }
+
+    if (!reversedExecution) {
+      await executeGlobalHook();
+    }
+    await executeGroupHooks();
+    if (reversedExecution) {
+      await executeGlobalHook();
+    }
+  }
+
   FutureOr<Response> execute(Route route, Request request) async {
     final groups = route.getGroups();
     final keyRegex =
@@ -201,66 +241,48 @@ class App {
     }
 
     try {
-      if (route.hook) {
-        for (final hook in _init) {
-          if (hook.getGroups().contains('*')) {
-            hook.getAction().call(_getArguments(hook,
-                requestParams: await request.getParams(), values: values));
-          }
-        }
-      }
-
-      for (final group in groups) {
-        for (final hook in _init) {
-          if (hook.getGroups().contains(group)) {
-            hook.getAction().call(_getArguments(hook,
-                requestParams: await request.getParams(), values: values));
-          }
-        }
-      }
+      await _executeHooks(
+        _init,
+        groups,
+        (hook) async => _getArguments(
+          hook,
+          requestParams: await request.getParams(),
+          values: values,
+        ),
+        globalHook: route.hook,
+      );
 
       final args = _getArguments(route,
           requestParams: await request.getParams(), values: values);
       final response = await Function.apply(
-          route.getAction(), [...route.hookArgs.map((key) => args[key])]);
+          route.getAction(), [...route.argsOrder.map((key) => args[key])]);
 
-      for (final group in groups) {
-        for (final hook in _shutdown) {
-          if (hook.getGroups().contains(group)) {
-            hook.getAction().call(_getArguments(hook,
-                requestParams: await request.getParams(), values: values));
-          }
-        }
-      }
-
-      if (route.hook) {
-        for (final hook in _shutdown) {
-          if (hook.getGroups().contains('*')) {
-            hook.getAction().call(_getArguments(hook,
-                requestParams: await request.getParams(), values: values));
-          }
-        }
-      }
+      await _executeHooks(
+        _shutdown,
+        groups,
+        (hook) async => _getArguments(
+          hook,
+          requestParams: await request.getParams(),
+          values: values,
+        ),
+        globalHook: route.hook,
+        reversedExecution: true,
+      );
 
       return response;
     } on Exception catch (e) {
-      for (final group in groups) {
-        for (final hook in _errors) {
-          setResource('error', () => e);
-          if (hook.getGroups().contains(group)) {
-            hook.getAction().call(_getArguments(hook,
-                requestParams: await request.getParams(), values: values));
-          }
-        }
-      }
-
-      for (final hook in _errors) {
-        setResource('error', () => e);
-        if (hook.getGroups().contains('*')) {
-          hook.getAction().call(_getArguments(hook,
-              requestParams: await request.getParams(), values: values));
-        }
-      }
+      setResource('error', () => e);
+      await _executeHooks(
+        _errors,
+        groups,
+        (hook) async => _getArguments(
+          hook,
+          requestParams: await request.getParams(),
+          values: values,
+        ),
+        globalHook: route.hook,
+        reversedExecution: true,
+      );
 
       if (e is ValidationException) {
         final response = getResource('response');
@@ -305,22 +327,16 @@ class App {
       return execute(route, request);
     } else if (method == Request.options) {
       try {
-        for (final group in groups) {
-          for (final hook in _options) {
-            if (hook.getGroups().contains(group)) {
-              hook.getAction().call(_getArguments(hook,
-                  requestParams: await request.getParams()));
-            }
-          }
-        }
-        for (final hook in _options) {
-          if (hook.getGroups().contains('*')) {
-            hook.getAction().call(_getArguments(
-                  hook,
-                  requestParams: await request.getParams(),
-                ));
-          }
-        }
+        _executeHooks(
+          _options,
+          groups,
+          (hook) async => _getArguments(
+            hook,
+            requestParams: await request.getParams(),
+          ),
+          globalHook: true,
+          reversedExecution: true,
+        );
         return response;
       } on Exception catch (e) {
         for (final hook in _errors) {

@@ -6,9 +6,11 @@ import 'package:utopia_dart_framework/src/validators/text.dart';
 import 'package:utopia_dart_framework/utopia_dart_framework.dart';
 
 void initApp(App app) {
-  app.error().inject('error').inject('response').action((params) {
-    final error = params['error'];
-    final response = params['response'];
+  app
+      .error()
+      .inject('error')
+      .inject('response')
+      .action((Exception error, Response response) {
     if (error is ValidationException) {
       response.status = 400;
       response.body = error.message;
