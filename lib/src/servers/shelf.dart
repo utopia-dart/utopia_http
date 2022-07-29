@@ -12,12 +12,17 @@ class ShelfServer extends Server {
   HttpServer? server;
   Handler? handler;
 
-  ShelfServer(super.address, super.port);
+  ShelfServer(super.address, super.port, {super.securityContext});
 
   @override
   Future<HttpServer> serve(Handler handler) async {
     this.handler = handler;
-    server = await shelf_io.serve(_handleRequest, address, port);
+    server = await shelf_io.serve(
+      _handleRequest,
+      address,
+      port,
+      securityContext: securityContext,
+    );
     return server!;
   }
 

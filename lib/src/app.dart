@@ -25,12 +25,14 @@ class App {
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
   final List<Hook> _options = [];
+  HttpServer? _server;
 
   AppMode? mode;
 
   bool get isProduction => mode == AppMode.production;
   bool get isDevelopment => mode == AppMode.development;
   bool get isStage => mode == AppMode.stage;
+  HttpServer? get server => _server;
 
   final Map<String, dynamic> _resources = {
     'error': null,
@@ -40,8 +42,9 @@ class App {
   final Map<String, dynamic> _matches = {};
   Route? route;
 
-  Future<HttpServer> serve(Server server) {
-    return server.serve((request) => run(request));
+  Future<HttpServer> serve(Server server) async {
+    _server = await server.serve((request) => run(request));
+    return _server!;
   }
 
   Route get(String url) {
@@ -421,6 +424,10 @@ class App {
     _options.clear();
     _sorted = false;
     mode = null;
+  }
+
+  Future<dynamic> closeServer({bool force = false}) async {
+    return _server?.close(force: force);
   }
 
   static void resetResources() {

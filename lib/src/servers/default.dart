@@ -8,12 +8,15 @@ class DefaultServer extends Server {
   HttpServer? server;
   Handler? handler;
 
-  DefaultServer(super.address, super.port);
+  DefaultServer(super.address, super.port, {super.securityContext});
 
   @override
   Future<HttpServer> serve(Handler handler) async {
     this.handler = handler;
-    server = await HttpServer.bind(address, port);
+    server = await (securityContext != null
+        ? HttpServer.bindSecure(address, port, securityContext!)
+        : HttpServer.bind(address, port));
+
     _handleRequest();
     return server!;
   }
