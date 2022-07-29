@@ -101,7 +101,7 @@ class App {
     if (name == 'utopia') return this;
     if (_resources[name] == null ||
         fresh ||
-        (_resourceCallbacks[name]?.reset ?? false)) {
+        (_resourceCallbacks[name]?.reset ?? true)) {
       if (_resourceCallbacks[name] == null) {
         throw Exception('Failed to find resource: "$name"');
       }
@@ -351,12 +351,15 @@ class App {
   }
 
   void reset() {
-    _resourceCallbacks.clear();
     _errors.clear();
     _init.clear();
     _shutdown.clear();
     _options.clear();
     _sorted = false;
+  }
+
+  static void clearResources() {
+    _resourceCallbacks.clear();
   }
 }
 
