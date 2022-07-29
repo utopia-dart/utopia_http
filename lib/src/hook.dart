@@ -1,4 +1,4 @@
-import 'package:utopia_dart_framework/src/validators/validator.dart';
+import 'validators/validator.dart';
 
 class Hook {
   String description = '';

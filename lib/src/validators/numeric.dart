@@ -1,5 +1,5 @@
-import 'package:utopia_dart_framework/src/validators/types.dart';
-import 'package:utopia_dart_framework/src/validators/validator.dart';
+import 'types.dart';
+import 'validator.dart';
 
 class Numeric extends Validator {
   @override

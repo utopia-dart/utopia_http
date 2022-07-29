@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-import 'package:utopia_dart_framework/src/request.dart';
-import 'package:utopia_dart_framework/src/response.dart';
-import 'package:utopia_dart_framework/src/server.dart';
-import 'package:utopia_dart_framework/src/validation_exception.dart';
+import 'request.dart';
+import 'response.dart';
+import 'server.dart';
+import 'validation_exception.dart';
 import 'hook.dart';
 import 'route.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:utopia_dart_framework/src/request.dart';
-import 'package:utopia_dart_framework/src/response.dart';
+import '../request.dart';
+import '../response.dart';
 import '../server.dart';
 
 class DefaultServer extends Server {

@@ -1,4 +1,4 @@
-import 'package:utopia_dart_framework/src/validators/validator.dart';
+import 'validator.dart';
 
 class AllowList<T> extends Validator {
   final List<T> _list;
