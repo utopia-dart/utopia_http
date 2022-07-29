@@ -376,7 +376,7 @@ class App {
     _sorted = false;
   }
 
-  static void clearResources() {
+  static void resetResources() {
     _resourceCallbacks.clear();
   }
 }
