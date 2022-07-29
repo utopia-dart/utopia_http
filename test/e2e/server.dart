@@ -51,11 +51,11 @@ void initApp() {
 Future<HttpServer> defaultServer() async {
   App.reset();
   initApp();
-  return App.serve(DefaultServer('localhost', 3030));
+  return App().serve(DefaultServer('localhost', 3030));
 }
 
 Future<HttpServer> shelfServer() async {
   App.reset();
   initApp();
-  return App.serve(ShelfServer('localhost', 3030));
+  return App().serve(ShelfServer('localhost', 3030));
 }

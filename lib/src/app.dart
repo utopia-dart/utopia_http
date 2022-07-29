@@ -28,11 +28,13 @@ class App {
   final Map<String, dynamic> _resources = {
     'error': null,
   };
-  final List _matches = [];
+
+  final Map<String, Route> _matchedRoute = {};
+  final Map<String, dynamic> _matches = {};
   Route? route;
 
-  static Future<HttpServer> serve(Server server) {
-    return server.serve((request) => App().run(request));
+  Future<HttpServer> serve(Server server) {
+    return server.serve((request) => run(request));
   }
 
   static Route get(String url) {
@@ -124,21 +126,22 @@ class App {
   }
 
   Route? match(Request request) {
-    if (route != null) {
-      return route;
+    if (_matchedRoute[request.url.path] != null) {
+      return _matchedRoute[request.url.path];
     }
 
     final method =
         request.method == Request.head ? Request.get : request.method;
 
     final mroutes = _routes[method]!;
+    _matches[request.url.path] ??= [];
     for (final entry in mroutes.entries) {
       final regex = entry.key.replaceAll(RegExp(':[^/]+'), '([^/]+)');
       final reqUrl = '/${request.url.path}';
       if (RegExp(regex).hasMatch(reqUrl)) {
         for (var m in RegExp(regex).allMatches(reqUrl)) {
           if (m.groupCount > 0 && m[1] != null) {
-            _matches.add(m[1]!);
+            _matches[request.url.path].add(m[1]!);
           }
         }
         route = entry.value;
@@ -155,6 +158,9 @@ class App {
         route!.path == '/' &&
         '/${request.url.path}' != route!.path) {
       return null;
+    }
+    if (route != null) {
+      _matchedRoute[request.url.path] = route!;
     }
     return route;
   }
@@ -191,7 +197,7 @@ class App {
     }
     final values = <String, dynamic>{};
     for (var element in keys) {
-      values[element.toString()] = _matches.removeAt(0);
+      values[element.toString()] = _matches[request.url.path].removeAt(0);
     }
 
     try {

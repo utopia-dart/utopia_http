@@ -47,5 +47,5 @@ void main() {
     return params['response'];
   });
 
-  App.serve(ShelfServer('localhost', 8080));
+  App().serve(ShelfServer('localhost', 8080));
 }
