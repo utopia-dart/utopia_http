@@ -107,11 +107,8 @@ class App {
       }
 
       final params = getResources(_resourceCallbacks[name]!.injections);
-      if (params.isNotEmpty) {
-        _resources[name] = _resourceCallbacks[name]!.callback.call(params);
-      } else {
-        _resources[name] = _resourceCallbacks[name]!.callback.call();
-      }
+      _resources[name] = Function.apply(
+          _resourceCallbacks[name]!.callback, [...params.values]);
     }
     _resourceCallbacks[name] = _resourceCallbacks[name]!.copyWith(reset: false);
     return _resources[name];
