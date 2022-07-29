@@ -99,6 +99,25 @@ class App {
     return route;
   }
 
+  Route? getRoute() {
+    try {
+      final request = getResource('request');
+      return _matchedRoute[request.url.path];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  App setRoute(Route route) {
+    try {
+      final request = getResource('request');
+      _matchedRoute[request.url.path];
+    } catch (e) {
+      throw Exception('Unable to set route at this context');
+    }
+    return this;
+  }
+
   static void setResource(
     String name,
     Function callback, {
