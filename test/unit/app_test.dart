@@ -17,7 +17,7 @@ void main() async {
     test('resource', () async {
       expect(app.getResource('second'), 'second');
       expect(app.getResource('first'), 'first-second');
-      final resource = app?.getResource('rand');
+      final resource = app.getResource('rand');
       assert(resource != null);
       expect(app.getResource('rand'), resource);
       expect(app.getResource('rand'), resource);
@@ -40,7 +40,7 @@ void main() async {
           )
           .action((params) =>
               Response("${params['x']}-${params['y']}-${params['rand']}"));
-      final res = await app!.execute(route, Request('GET', Uri.parse('/path')));
+      final res = await app.execute(route, Request('GET', Uri.parse('/path')));
       expect(res.body, 'x-def-y-def-$resource');
     });
   });

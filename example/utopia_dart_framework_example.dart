@@ -8,7 +8,8 @@ void main() {
     return params['response'];
   });
 
-  app.get('/users/:userId')
+  app
+      .get('/users/:userId')
       .param(key: 'userId', defaultValue: '', description: 'Users unique ID')
       .inject('response')
       .action((params) {
@@ -17,7 +18,8 @@ void main() {
     return params['response'];
   });
 
-  app.get('/users/:userId/jhyap/:messing')
+  app
+      .get('/users/:userId/jhyap/:messing')
       .param(key: 'userId', defaultValue: '', description: 'Users unique ID')
       .param(key: 'messing', defaultValue: 'messing')
       .inject('response')
@@ -27,7 +29,8 @@ void main() {
     return params['response'];
   });
 
-  app.post('/users')
+  app
+      .post('/users')
       .param(key: 'userId')
       .param(key: 'name')
       .param(key: 'email')
@@ -39,7 +42,8 @@ void main() {
     return params['response'];
   });
 
-  app.get('/users/:userId/jhyap')
+  app
+      .get('/users/:userId/jhyap')
       .param(key: 'userId', defaultValue: '', description: 'Users unique ID')
       .inject('response')
       .action((params) {
