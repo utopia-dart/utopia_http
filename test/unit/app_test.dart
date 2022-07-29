@@ -38,8 +38,7 @@ void main() async {
             description: 'y param',
             validator: Text(length: 200),
           )
-          .action((params) =>
-              Response("${params['x']}-${params['y']}-${params['rand']}"));
+          .action((int rand, String x, String y) => Response("$x-$y-$rand"));
       final res = await app.execute(route, Request('GET', Uri.parse('/path')));
       expect(res.body, 'x-def-y-def-$resource');
     });

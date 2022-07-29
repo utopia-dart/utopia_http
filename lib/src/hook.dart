@@ -9,6 +9,9 @@ class Hook {
   late int order;
   late dynamic _action;
 
+  final List<String> _hookArgs = [];
+
+  List<String> get hookArgs => _hookArgs;
   List<String> get injections => _injections;
   Map<String, Param> get params => _params;
 
@@ -41,6 +44,7 @@ class Hook {
       throw Exception("Injection already declared for $injection");
     }
     _injections.add(injection);
+    _hookArgs.add(injection);
     return this;
   }
 
@@ -56,6 +60,7 @@ class Hook {
         description: description,
         value: null,
         optional: optional);
+    _hookArgs.add(key);
     return this;
   }
 }

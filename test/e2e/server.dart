@@ -15,9 +15,13 @@ void initApp(App app) {
     }
     return response;
   });
-  app.get('/hello').inject('request').inject('response').action((params) {
-    params['response'].text('Hello World!');
-    return params['response'];
+  app
+      .get('/hello')
+      .inject('request')
+      .inject('response')
+      .action((Request request, Response response) {
+    response.text('Hello World!');
+    return response;
   });
 
   app
@@ -28,9 +32,9 @@ void initApp(App app) {
           defaultValue: '',
           description: 'Users unique ID')
       .inject('response')
-      .action((params) {
-    params['response'].text(params['userId']);
-    return params['response'];
+      .action((String userId, Response response) {
+    response.text(userId);
+    return response;
   });
 
   app
@@ -40,13 +44,19 @@ void initApp(App app) {
       .param(key: 'email')
       .inject('response')
       .inject('request')
-      .action((params) {
-    params['response'].json({
-      "userId": params['userId'],
-      "email": params['email'],
-      "name": params['name']
+      .action((
+    String userId,
+    String name,
+    String email,
+    Response response,
+    Request request,
+  ) {
+    response.json({
+      "userId": userId,
+      "email": email,
+      "name": name,
     });
-    return params['response'];
+    return response;
   });
 }
 

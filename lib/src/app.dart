@@ -221,7 +221,8 @@ class App {
 
       final args = _getArguments(route,
           requestParams: await request.getParams(), values: values);
-      final response = await route.getAction().call(args);
+      final response = await Function.apply(
+          route.getAction(), [...route.hookArgs.map((key) => args[key])]);
 
       for (final group in groups) {
         for (final hook in _shutdown) {
