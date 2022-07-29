@@ -48,18 +48,20 @@ class Hook {
     return this;
   }
 
-  Hook param(
-      {required String key,
-      dynamic defaultValue,
-      Validator? validator,
-      String description = '',
-      bool optional = false}) {
+  Hook param({
+    required String key,
+    dynamic defaultValue,
+    Validator? validator,
+    String description = '',
+    bool optional = false,
+  }) {
     _params[key] = Param(
-        defaultValue: defaultValue,
-        validator: validator,
-        description: description,
-        value: null,
-        optional: optional);
+      defaultValue: defaultValue,
+      validator: validator,
+      description: description,
+      value: null,
+      optional: optional,
+    );
     _argsOrder.add(key);
     return this;
   }
@@ -72,10 +74,11 @@ class Param {
   final dynamic value;
   final bool optional;
 
-  Param(
-      {required this.defaultValue,
-      required this.validator,
-      required this.description,
-      required this.value,
-      required this.optional});
+  Param({
+    required this.defaultValue,
+    required this.validator,
+    required this.description,
+    required this.value,
+    required this.optional,
+  });
 }

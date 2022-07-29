@@ -29,10 +29,11 @@ void initApp(App app) {
   app
       .get('/users/:userId')
       .param(
-          key: 'userId',
-          validator: Text(length: 10),
-          defaultValue: '',
-          description: 'Users unique ID')
+        key: 'userId',
+        validator: Text(length: 10),
+        defaultValue: '',
+        description: 'Users unique ID',
+      )
       .inject('response')
       .action((String userId, Response response) {
     response.text(userId);

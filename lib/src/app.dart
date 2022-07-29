@@ -88,8 +88,11 @@ class App {
     return route;
   }
 
-  static void setResource(String name, Function callback,
-      {List<String> injections = const []}) {
+  static void setResource(
+    String name,
+    Function callback, {
+    List<String> injections = const [],
+  }) {
     if (name == 'utopia') {
       throw Exception('utopia is a reserved resource.');
     }
@@ -108,7 +111,9 @@ class App {
 
       final params = getResources(_resourceCallbacks[name]!.injections);
       _resources[name] = Function.apply(
-          _resourceCallbacks[name]!.callback, [...params.values]);
+        _resourceCallbacks[name]!.callback,
+        [...params.values],
+      );
     }
     _resourceCallbacks[name] = _resourceCallbacks[name]!.copyWith(reset: false);
     return _resources[name];
@@ -194,8 +199,10 @@ class App {
         for (final hook in hooks) {
           if (hook.getGroups().contains('*')) {
             final arguments = await argsCallback.call(hook);
-            Function.apply(hook.getAction(),
-                [...hook.argsOrder.map((key) => arguments[key])]);
+            Function.apply(
+              hook.getAction(),
+              [...hook.argsOrder.map((key) => arguments[key])],
+            );
           }
         }
       }
@@ -206,8 +213,10 @@ class App {
         for (final hook in _init) {
           if (hook.getGroups().contains(group)) {
             final arguments = await argsCallback.call(hook);
-            Function.apply(hook.getAction(),
-                [...hook.argsOrder.map((key) => arguments[key])]);
+            Function.apply(
+              hook.getAction(),
+              [...hook.argsOrder.map((key) => arguments[key])],
+            );
           }
         }
       }
@@ -249,10 +258,15 @@ class App {
         globalHook: route.hook,
       );
 
-      final args = _getArguments(route,
-          requestParams: await request.getParams(), values: values);
+      final args = _getArguments(
+        route,
+        requestParams: await request.getParams(),
+        values: values,
+      );
       final response = await Function.apply(
-          route.getAction(), [...route.argsOrder.map((key) => args[key])]);
+        route.getAction(),
+        [...route.argsOrder.map((key) => args[key])],
+      );
 
       await _executeHooks(
         _shutdown,
@@ -343,7 +357,8 @@ class App {
           setResource('error', () => e);
           if (hook.getGroups().contains('*')) {
             hook.getAction().call(
-                _getArguments(hook, requestParams: await request.getParams()));
+                  _getArguments(hook, requestParams: await request.getParams()),
+                );
           }
         }
         return getResource('response');
@@ -360,7 +375,8 @@ class App {
       if (validator != null) {
         if (!validator.isValid(value)) {
           throw ValidationException(
-              'Invalid $key: ${validator.getDescription()}');
+            'Invalid $key: ${validator.getDescription()}',
+          );
         }
       }
     } else if (!param.optional) {
@@ -387,8 +403,12 @@ class _ResourceCallback {
   final Function callback;
   final bool reset;
 
-  _ResourceCallback(this.name, this.injections, this.callback,
-      {this.reset = false});
+  _ResourceCallback(
+    this.name,
+    this.injections,
+    this.callback, {
+    this.reset = false,
+  });
 
   _ResourceCallback copyWith({bool? reset}) {
     return _ResourceCallback(name, injections, callback, reset: reset ?? false);

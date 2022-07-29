@@ -33,11 +33,14 @@ class DefaultServer extends Server {
       headersAll[name] = values;
       headers[name] = values.join(',');
     });
-    return Request(httpRequest.method, httpRequest.uri,
-        headers: headers,
-        headersAll: headersAll,
-        contentType: httpRequest.headers.value(HttpHeaders.contentTypeHeader),
-        body: httpRequest);
+    return Request(
+      httpRequest.method,
+      httpRequest.uri,
+      headers: headers,
+      headersAll: headersAll,
+      contentType: httpRequest.headers.value(HttpHeaders.contentTypeHeader),
+      body: httpRequest,
+    );
   }
 
   _toHttpResponse(Response response, HttpResponse httpResponse) {

@@ -57,18 +57,23 @@ jsonTest() async {
   final res = await stream.pipe(req) as HttpClientResponse;
   final output = await utf8.decodeStream(res);
   expect(res.headers.contentType.toString(), ContentType.json.toString());
-  expect(output,
-      '{"userId":"myuserid","email":"email@gmail.com","name":"myname"}');
+  expect(
+    output,
+    '{"userId":"myuserid","email":"email@gmail.com","name":"myname"}',
+  );
 }
 
 paramValidationTest() async {
   final client = HttpClient();
   final req = await client.getUrl(
-      Uri.parse('http://localhost:3030/users/verylonguseridnotvalidate'));
+    Uri.parse('http://localhost:3030/users/verylonguseridnotvalidate'),
+  );
   final res = await req.close();
   final output = await utf8.decodeStream(res);
-  expect(output,
-      'Invalid userId: Value must be a valid string and no longer than 10 chars');
+  expect(
+    output,
+    'Invalid userId: Value must be a valid string and no longer than 10 chars',
+  );
 }
 
 paramsTest() async {

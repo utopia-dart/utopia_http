@@ -26,14 +26,20 @@ class ShelfServer extends Server {
   }
 
   Request _fromShelfRequest(shelf.Request shelfRequest) {
-    return Request(shelfRequest.method, shelfRequest.url,
-        body: shelfRequest.read(),
-        contentType: shelfRequest.headers[HttpHeaders.contentTypeHeader]);
+    return Request(
+      shelfRequest.method,
+      shelfRequest.url,
+      body: shelfRequest.read(),
+      contentType: shelfRequest.headers[HttpHeaders.contentTypeHeader],
+    );
   }
 
   shelf.Response _toShelfResponse(Response response) {
-    final res = shelf.Response(response.status,
-        body: response.body, headers: response.headers);
+    final res = shelf.Response(
+      response.status,
+      body: response.body,
+      headers: response.headers,
+    );
     return res;
   }
 }

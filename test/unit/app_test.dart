@@ -9,8 +9,11 @@ import 'package:utopia_dart_framework/src/validators/text.dart';
 void main() async {
   final app = App();
   App.setResource('rand', () => Random().nextInt(100));
-  App.setResource('first', (String second) => 'first-$second',
-      injections: ['second']);
+  App.setResource(
+    'first',
+    (String second) => 'first-$second',
+    injections: ['second'],
+  );
   App.setResource('second', () => 'second');
 
   group('App', () {

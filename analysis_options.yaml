@@ -15,6 +15,8 @@ include: package:lints/recommended.yaml
 linter:
   rules:
     - prefer_relative_imports
+    - avoid_relative_lib_imports
+    - require_trailing_commas
 
 # Uncomment the following section to specify additional rules.
 

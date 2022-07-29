@@ -52,20 +52,25 @@ void main() async {
     expect(false, validator.isValid('hello123'));
 
     // Test combination of allowLists
-    validator = Text(length: 100, allowList: [
-      ...Text.alphabetLower,
-      ...Text.alphabetUpper,
-      ...Text.numbers
-    ]);
+    validator = Text(
+      length: 100,
+      allowList: [
+        ...Text.alphabetLower,
+        ...Text.alphabetUpper,
+        ...Text.numbers
+      ],
+    );
     expect(Types.string.name, validator.getType());
     expect(false, validator.isArray());
     expect(true, validator.isValid('1234567890'));
     expect(true, validator.isValid('qwertzuiopasdfghjklyxcvbnm'));
     expect(true, validator.isValid('QWERTZUIOPASDFGHJKLYXCVBNM'));
     expect(
-        true,
-        validator.isValid(
-            'QWERTZUIOPASDFGHJKLYXCVBNMqwertzuiopasdfghjklyxcvbnm1234567890'));
+      true,
+      validator.isValid(
+        'QWERTZUIOPASDFGHJKLYXCVBNMqwertzuiopasdfghjklyxcvbnm1234567890',
+      ),
+    );
     expect(false, validator.isValid('hello-world'));
     expect(false, validator.isValid('hello_world'));
     expect(false, validator.isValid('hello/world'));
