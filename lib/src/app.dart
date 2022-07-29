@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 import 'app_mode.dart';
+import 'hook.dart';
 import 'request.dart';
 import 'response.dart';
+import 'route.dart';
 import 'server.dart';
 import 'validation_exception.dart';
-import 'hook.dart';
-import 'route.dart';
 
 class App {
   final Map<String, Map<String, Route>> _routes = {

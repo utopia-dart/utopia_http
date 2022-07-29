@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'server.dart' as server;
 import 'package:test/test.dart';
+
+import 'server.dart' as server;
 
 void main() {
   group('Framework Default Server', () {

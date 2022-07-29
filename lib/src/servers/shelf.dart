@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
+
 import '../request.dart';
 import '../response.dart';
 import '../server.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:shelf/shelf.dart' as shelf;
 
 class ShelfServer extends Server {
   HttpServer? server;
