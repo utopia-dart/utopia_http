@@ -9,7 +9,7 @@ import 'hook.dart';
 import 'route.dart';
 
 class App {
-  static final Map<String, Map<String, Route>> _routes = {
+  final Map<String, Map<String, Route>> _routes = {
     Request.get: {},
     Request.post: {},
     Request.put: {},
@@ -17,13 +17,13 @@ class App {
     Request.delete: {},
     Request.head: {},
   };
-  static Map<String, Map<String, Route>> get routes => _routes;
+  Map<String, Map<String, Route>> get routes => _routes;
   static final Map<String, _ResourceCallback> _resourceCallbacks = {};
-  static bool _sorted = false;
-  static final List<Hook> _errors = [];
-  static final List<Hook> _init = [];
-  static final List<Hook> _shutdown = [];
-  static final List<Hook> _options = [];
+  bool _sorted = false;
+  final List<Hook> _errors = [];
+  final List<Hook> _init = [];
+  final List<Hook> _shutdown = [];
+  final List<Hook> _options = [];
 
   final Map<String, dynamic> _resources = {
     'error': null,
@@ -37,51 +37,51 @@ class App {
     return server.serve((request) => run(request));
   }
 
-  static Route get(String url) {
+  Route get(String url) {
     return addRoute(Request.get, url);
   }
 
-  static Route post(String url) {
+  Route post(String url) {
     return addRoute(Request.post, url);
   }
 
-  static Route patch(String url) {
+  Route patch(String url) {
     return addRoute(Request.patch, url);
   }
 
-  static Route put(String url) {
+  Route put(String url) {
     return addRoute(Request.put, url);
   }
 
-  static Route delete(String url) {
+  Route delete(String url) {
     return addRoute(Request.delete, url);
   }
 
-  static Hook init() {
+  Hook init() {
     final hook = Hook()..groups(['*']);
     _init.add(hook);
     return hook;
   }
 
-  static Hook shutdown() {
+  Hook shutdown() {
     final hook = Hook()..groups(['*']);
     _shutdown.add(hook);
     return hook;
   }
 
-  static Hook options() {
+  Hook options() {
     final hook = Hook()..groups(['*']);
     _options.add(hook);
     return hook;
   }
 
-  static Hook error() {
+  Hook error() {
     final hook = Hook()..groups(['*']);
     _errors.add(hook);
     return hook;
   }
 
-  static Route addRoute(String method, String path) {
+  Route addRoute(String method, String path) {
     final route = Route(method, path);
     _routes[method]![path] = route;
     _sorted = false;
@@ -270,9 +270,9 @@ class App {
   }
 
   FutureOr<Response> run(Request request) async {
-    App.setResource('request', () => request);
+    setResource('request', () => request);
     final response = Response('');
-    App.setResource('response', () => response);
+    setResource('response', () => response);
     if (!_sorted) {
       _routes.forEach((method, pathRoutes) {
         _routes[method] =
@@ -350,7 +350,7 @@ class App {
     }
   }
 
-  static void reset() {
+  void reset() {
     _resourceCallbacks.clear();
     _errors.clear();
     _init.clear();

@@ -7,25 +7,21 @@ import 'package:utopia_dart_framework/src/route.dart';
 import 'package:utopia_dart_framework/src/validators/text.dart';
 
 void main() async {
+  final app = App();
   App.setResource('rand', () => Random().nextInt(100));
   App.setResource('first', (params) => 'first-${params["second"]}',
       injections: ['second']);
   App.setResource('second', () => 'second');
 
   group('App', () {
-    App? app;
-    setUp(() {
-      app = App();
-    });
-
     test('resource', () async {
-      expect(app!.getResource('second'), 'second');
-      expect(app?.getResource('first'), 'first-second');
+      expect(app.getResource('second'), 'second');
+      expect(app.getResource('first'), 'first-second');
       final resource = app?.getResource('rand');
       assert(resource != null);
-      expect(app?.getResource('rand'), resource);
-      expect(app?.getResource('rand'), resource);
-      expect(app?.getResource('rand'), resource);
+      expect(app.getResource('rand'), resource);
+      expect(app.getResource('rand'), resource);
+      expect(app.getResource('rand'), resource);
 
       final route = Route('GET', '/path');
       route
