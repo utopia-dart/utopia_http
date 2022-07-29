@@ -18,7 +18,7 @@ class DefaultServer extends Server {
     return server!;
   }
 
-  _handleRequest() async {
+  void _handleRequest() async {
     server!.forEach((httpRequest) async {
       final request = _fromHttpRequest(httpRequest);
       final response = await handler!.call(request);
@@ -43,7 +43,7 @@ class DefaultServer extends Server {
     );
   }
 
-  _toHttpResponse(Response response, HttpResponse httpResponse) {
+  void _toHttpResponse(Response response, HttpResponse httpResponse) {
     httpResponse.statusCode = response.status;
     response.headers.forEach((name, value) {
       httpResponse.headers.set(name, value);

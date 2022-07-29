@@ -61,7 +61,7 @@ class Response {
     body = '';
   }
 
-  end(message, {int status = 200}) {
+  void end(message, {int status = 200}) {
     body = message;
     status = 200;
   }

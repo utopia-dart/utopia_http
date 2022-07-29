@@ -44,7 +44,7 @@ void main() {
   });
 }
 
-jsonTest() async {
+void jsonTest() async {
   final client = HttpClient();
   final req = await client.postUrl(Uri.parse('http://localhost:3030/users'));
   req.headers.set(HttpHeaders.contentTypeHeader, ContentType.json.toString());
@@ -63,7 +63,7 @@ jsonTest() async {
   );
 }
 
-paramValidationTest() async {
+void paramValidationTest() async {
   final client = HttpClient();
   final req = await client.getUrl(
     Uri.parse('http://localhost:3030/users/verylonguseridnotvalidate'),
@@ -76,7 +76,7 @@ paramValidationTest() async {
   );
 }
 
-paramsTest() async {
+void paramsTest() async {
   final client = HttpClient();
   final req =
       await client.getUrl(Uri.parse('http://localhost:3030/users/myuserid'));
@@ -85,7 +85,7 @@ paramsTest() async {
   expect(output, 'myuserid');
 }
 
-basicResponseTest() async {
+void basicResponseTest() async {
   final client = HttpClient();
   final req = await client.getUrl(Uri.parse('http://localhost:3030/hello'));
   final res = await req.close();

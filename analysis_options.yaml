@@ -17,6 +17,7 @@ linter:
     - prefer_relative_imports
     - avoid_relative_lib_imports
     - require_trailing_commas
+    - always_declare_return_types
 
 # Uncomment the following section to specify additional rules.
 
