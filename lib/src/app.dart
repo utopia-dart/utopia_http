@@ -106,14 +106,13 @@ class App {
 
       final params = getResources(_resourceCallbacks[name]!.injections);
       if (params.isNotEmpty) {
-        _resources[name] =
-            _resourceCallbacks[name]!.callback.call(params.values);
+        _resources[name] = _resourceCallbacks[name]!.callback.call(params);
       } else {
         _resources[name] = _resourceCallbacks[name]!.callback.call();
       }
-
-      return _resources[name];
     }
+    _resourceCallbacks[name] = _resourceCallbacks[name]!.copyWith(reset: false);
+    return _resources[name];
   }
 
   Map<String, dynamic> getResources(List<String> names) {
@@ -365,4 +364,8 @@ class _ResourceCallback {
 
   _ResourceCallback(this.name, this.injections, this.callback,
       {this.reset = false});
+
+  _ResourceCallback copyWith({bool? reset}) {
+    return _ResourceCallback(name, injections, callback, reset: reset ?? false);
+  }
 }
