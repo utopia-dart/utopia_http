@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  analyze:
     runs-on: ubuntu-latest
     container:
       image: dart:latest
@@ -18,5 +18,5 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: dart pub get
-      - name: Test
-        run: dart test
+      - name: analyze
+        run: dart analyze
