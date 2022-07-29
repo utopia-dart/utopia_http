@@ -1,6 +1,7 @@
 name: utopia_dart_framework_example
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
+publish_to: none
 # homepage: https://www.example.com
 
 environment:

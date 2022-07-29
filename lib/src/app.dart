@@ -173,14 +173,13 @@ class App {
       args[key] = value;
     });
 
-    hook.injections.forEach((injection) {
+    for (var injection in hook.injections) {
       args[injection] = getResource(injection);
-    });
+    }
     return args;
   }
 
   FutureOr<Response> execute(Route route, Request request) async {
-    final args = {};
     final groups = route.getGroups();
     final keyRegex =
         '^${route.path.replaceAll(RegExp(':[^/]+'), ':([^/]+)')}\$';
@@ -285,7 +284,6 @@ class App {
         });
       });
     }
-    final r = _routes;
     _sorted = true;
 
     String method = request.method.toUpperCase();
