@@ -81,6 +81,10 @@ class App {
     return hook;
   }
 
+  static dynamic getEnv(String key, {dynamic def}) {
+    return Platform.environment[key] ?? def;
+  }
+
   Route addRoute(String method, String path) {
     final route = Route(method, path);
     _routes[method]![path] = route;
