@@ -291,8 +291,11 @@ class App {
 
   FutureOr<Response> run(Request request) async {
     setResource('request', () => request);
-    final response = Response('');
-    setResource('response', () => response);
+
+    if (_resourceCallbacks['response'] == null) {
+      setResource('response', () => Response(''));
+    }
+
     if (!_sorted) {
       _routes.forEach((method, pathRoutes) {
         _routes[method] =
@@ -334,7 +337,7 @@ class App {
           globalHook: true,
           reversedExecution: true,
         );
-        return response;
+        return getResource('response');
       } on Exception catch (e) {
         for (final hook in _errors) {
           setResource('error', () => e);
@@ -346,6 +349,7 @@ class App {
         return getResource('response');
       }
     }
+    final response = getResource('response');
     response.end('Not Found', status: 404);
     return response;
   }
