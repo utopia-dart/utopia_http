@@ -91,7 +91,7 @@ class App {
     return hook;
   }
 
-  static dynamic getEnv(String key, {dynamic def}) {
+  static dynamic getEnv(String key, [dynamic def]) {
     return Platform.environment[key] ?? def;
   }
 
@@ -398,7 +398,8 @@ class App {
       }
     }
     final response = getResource('response');
-    response.end('Not Found', status: 404);
+    response.text('Not Found');
+    response.status = 404;
     return response;
   }
 

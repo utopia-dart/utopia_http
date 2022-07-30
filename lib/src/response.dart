@@ -41,18 +41,20 @@ class Response {
     return this;
   }
 
-  void json(Map<String, dynamic> data) {
+  void json(Map<String, dynamic> data, {int status = HttpStatus.ok}) {
     contentType = ContentType.json;
     body = jsonEncode(data);
   }
 
-  void text(String data) {
+  void text(String data, {int status = HttpStatus.ok}) {
     contentType = ContentType.text;
+    this.status = status;
     body = data;
   }
 
-  void html(String data) {
+  void html(String data, {int status = HttpStatus.ok}) {
     contentType = ContentType.html;
+    this.status = status;
     body = data;
   }
 
@@ -60,15 +62,4 @@ class Response {
     status = HttpStatus.noContent;
     body = '';
   }
-
-  void end(message, {int status = 200}) {
-    body = message;
-    status = 200;
-  }
-
-  Response.s404(String message, {Map<String, String>? headers})
-      : this(message, headers: headers ?? {});
-
-  Response.send(String message, {int status = 200})
-      : this(message, status: status);
 }
