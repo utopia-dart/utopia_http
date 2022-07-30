@@ -42,7 +42,7 @@ class App {
   final Map<String, dynamic> _matches = {};
   Route? route;
 
-  Future<HttpServer> serve(Server server, { String? path }) async {
+  Future<HttpServer> serve(Server server, {String? path}) async {
     _server = await server.serve((request) => run(request), path: path);
     return _server!;
   }
