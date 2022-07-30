@@ -1,4 +1,4 @@
-name: utopia_dart_framework_example
+name: utopia_framework_example
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
 publish_to: none
@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   shelf:
-  utopia_dart_framework:
+  utopia_framework:
     path: ../
 
 dev_dependencies:

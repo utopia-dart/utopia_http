@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import 'package:utopia_dart_framework/src/validators/text.dart';
-import 'package:utopia_dart_framework/src/validators/types.dart';
+import 'package:utopia_framework/src/validators/text.dart';
+import 'package:utopia_framework/src/validators/types.dart';
 
 void main() async {
   final text = Text(length: 10);

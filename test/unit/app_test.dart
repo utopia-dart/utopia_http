@@ -1,10 +1,10 @@
 import 'dart:math';
 import 'package:test/test.dart';
-import 'package:utopia_dart_framework/src/app.dart';
-import 'package:utopia_dart_framework/src/request.dart';
-import 'package:utopia_dart_framework/src/response.dart';
-import 'package:utopia_dart_framework/src/route.dart';
-import 'package:utopia_dart_framework/src/validators/text.dart';
+import 'package:utopia_framework/src/app.dart';
+import 'package:utopia_framework/src/request.dart';
+import 'package:utopia_framework/src/response.dart';
+import 'package:utopia_framework/src/route.dart';
+import 'package:utopia_framework/src/validators/text.dart';
 
 void main() async {
   final app = App();

@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:utopia_dart_framework/utopia_dart_framework.dart';
+import 'package:utopia_framework/utopia_framework.dart';
 
 void main() async {
   final route = Route('GET', '/');
