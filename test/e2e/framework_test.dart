@@ -6,25 +6,6 @@ import 'package:test/test.dart';
 import 'server.dart' as server;
 
 void main() {
-  group('Framework Default Server', () {
-    HttpServer? ser;
-    setUp(() async {
-      ser = await server.defaultServer();
-    });
-
-    test('Basic Response', basicResponseTest);
-
-    test('Param', paramsTest);
-
-    test('Param Validation', paramValidationTest);
-
-    test('JSON', jsonTest);
-
-    tearDown(() async {
-      await ser?.close();
-    });
-  });
-
   group('Framework Shelf Server', () {
     HttpServer? ser;
     setUp(() async {
@@ -39,10 +20,22 @@ void main() {
 
     test('JSON', jsonTest);
 
+    test('static', staticFileTest);
+
     tearDown(() async {
       await ser?.close();
     });
   });
+}
+
+void staticFileTest() async {
+  final client = HttpClient();
+  final req =
+      await client.getUrl(Uri.parse('http://localhost:3030/index.html'));
+  final res = await req.close();
+  final output = await utf8.decodeStream(res);
+  assert(res.headers.contentType.toString().contains('text/html'));
+  expect(output, 'Hello World Html!');
 }
 
 void jsonTest() async {

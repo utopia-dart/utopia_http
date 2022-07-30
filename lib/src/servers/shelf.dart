@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf_static/shelf_static.dart';
 
 import '../request.dart';
 import '../response.dart';
@@ -11,14 +12,22 @@ import '../server.dart';
 class ShelfServer extends Server {
   HttpServer? server;
   Handler? handler;
+  String? path;
 
   ShelfServer(super.address, super.port, {super.securityContext});
 
   @override
-  Future<HttpServer> serve(Handler handler) async {
+  Future<HttpServer> serve(Handler handler, {String? path}) async {
     this.handler = handler;
+    this.path = path;
+
     server = await shelf_io.serve(
-      _handleRequest,
+      path != null
+          ? shelf.Cascade()
+              .add(createStaticHandler(path))
+              .add(_handleRequest)
+              .handler
+          : _handleRequest,
       address,
       port,
       securityContext: securityContext,

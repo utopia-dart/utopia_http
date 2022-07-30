@@ -12,5 +12,5 @@ abstract class Server {
 
   Server(this.address, this.port, {this.securityContext});
 
-  Future<HttpServer> serve(Handler handler);
+  Future<HttpServer> serve(Handler handler, {String? path});
 }

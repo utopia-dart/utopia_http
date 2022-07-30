@@ -63,14 +63,8 @@ void initApp(App app) {
   });
 }
 
-Future<HttpServer> defaultServer() async {
-  final app = App();
-  initApp(app);
-  return app.serve(DefaultServer('localhost', 3030));
-}
-
 Future<HttpServer> shelfServer() async {
   final app = App();
   initApp(app);
-  return app.serve(ShelfServer('localhost', 3030));
+  return app.serve(ShelfServer('localhost', 3030), path: 'test/e2e/public');
 }
