@@ -46,6 +46,8 @@ class ShelfServer extends Server {
       shelfRequest.method,
       shelfRequest.url,
       body: shelfRequest.read(),
+      headers: shelfRequest.headers,
+      headersAll: shelfRequest.headersAll,
       contentType: shelfRequest.headers[HttpHeaders.contentTypeHeader],
     );
   }

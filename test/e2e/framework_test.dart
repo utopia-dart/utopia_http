@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
 import 'server.dart' as server;
@@ -22,10 +22,32 @@ void main() {
 
     test('static', staticFileTest);
 
+    test('file upload', fileUpload);
+
     tearDown(() async {
       await ser?.close();
     });
   });
+}
+
+void fileUpload() async {
+  var uri = Uri.parse('http://localhost:3030/create');
+  var request = http.MultipartRequest('POST', uri)
+    ..fields['userId'] = '1'
+    ..files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        'test/e2e/public/index.html',
+        filename: 'index',
+      ),
+    );
+  var res = await request.send();
+  final out = await utf8.decodeStream(res.stream);
+  expect(res.statusCode, 200);
+  expect(out, 'index');
+
+  print(out);
+  print(res.statusCode);
 }
 
 void staticFileTest() async {

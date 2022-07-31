@@ -15,6 +15,19 @@ void initApp(App app) {
     }
     return response;
   });
+
+  app
+      .post('/create')
+      .param(key: 'userId')
+      .param(key: 'file')
+      .inject('request')
+      .inject('response')
+      .action(
+          (String userId, dynamic file, Request request, Response response) {
+    response.text(file['filename']);
+    return response;
+  });
+
   app
       .get('/hello')
       .inject('request')

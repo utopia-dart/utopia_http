@@ -11,12 +11,12 @@ import 'validation_exception.dart';
 
 class App {
   final Map<String, Map<String, Route>> _routes = {
-    Request.get: {},
-    Request.post: {},
-    Request.put: {},
-    Request.patch: {},
-    Request.delete: {},
-    Request.head: {},
+    Request.get: <String, Route>{},
+    Request.post: <String, Route>{},
+    Request.put: <String, Route>{},
+    Request.patch: <String, Route>{},
+    Request.delete: <String, Route>{},
+    Request.head: <String, Route>{},
   };
   Map<String, Map<String, Route>> get routes => _routes;
   static final Map<String, _ResourceCallback> _resourceCallbacks = {};
@@ -346,18 +346,21 @@ class App {
     if (!_sorted) {
       _routes.forEach((method, pathRoutes) {
         _routes[method] =
-            SplayTreeMap<String, Route>.from(_routes[method]!, (a, b) {
-          return b.length - a.length;
-        });
+            Map<String, Route>.fromEntries(_routes[method]!.entries.toList()
+              ..sort((a, b) {
+                return b.key.length - a.key.length;
+              }));
 
         _routes[method] =
-            SplayTreeMap<String, Route>.from(_routes[method]!, (a, b) {
-          int result = b.split('/').length - a.split('/').length;
-          if (result == 0) {
-            return (a.split(':').length - 1) - (b.split(':').length - 1);
-          }
-          return result;
-        });
+            Map<String, Route>.fromEntries(_routes[method]!.entries.toList()
+              ..sort((a, b) {
+                int result = b.key.split('/').length - a.key.split('/').length;
+                if (result == 0) {
+                  return (a.key.split(':').length - 1) -
+                      (b.key.split(':').length - 1);
+                }
+                return result;
+              }));
       });
     }
     _sorted = true;
