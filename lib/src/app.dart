@@ -427,6 +427,8 @@ class App {
     _shutdown.clear();
     _options.clear();
     _sorted = false;
+    _matchedRoute.clear();
+    _matches.clear();
     mode = null;
   }
 
