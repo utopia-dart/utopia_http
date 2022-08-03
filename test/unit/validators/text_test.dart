@@ -3,6 +3,22 @@ import 'package:utopia_framework/src/validators/text.dart';
 import 'package:utopia_framework/src/validators/types.dart';
 
 void main() async {
+  String message = 'Value must be a valid string';
+
+  String stringWhenLengthIsGreaterThanZero(int value) =>
+      ' and no longer than $value chars';
+
+  String stringWhenListIsNotEmpty(List<String> value) =>
+      ' and only consist of \'${value.join(",")}\' chars';
+
+  String stringWhenLengthIsGreaterThanZeroAndListIsNotEmpty(
+    int intValue,
+    List<String> listValue,
+  ) =>
+      message +
+      stringWhenLengthIsGreaterThanZero(intValue) +
+      stringWhenListIsNotEmpty(listValue);
+
   final text = Text(length: 10);
 
   test('isValid', () {
@@ -15,6 +31,10 @@ void main() async {
     expect(false, text.isValid(false));
     expect(false, text.isArray());
     expect('string', text.getType());
+    expect(
+      message + stringWhenLengthIsGreaterThanZero(10),
+      text.getDescription(),
+    );
   });
 
   test('allowList', () {
@@ -29,6 +49,13 @@ void main() async {
     expect(false, validator.isValid('Hello'));
     expect(false, validator.isValid('worlD'));
     expect(false, validator.isValid('hello123'));
+    expect(
+      stringWhenLengthIsGreaterThanZeroAndListIsNotEmpty(
+        100,
+        Text.alphabetLower,
+      ),
+      validator.getDescription(),
+    );
 
     // Test uppercase alphabet
     validator = Text(length: 100, allowList: Text.alphabetUpper);
@@ -41,6 +68,13 @@ void main() async {
     expect(false, validator.isValid('hELLO'));
     expect(false, validator.isValid('WORLd'));
     expect(false, validator.isValid('HELLO123'));
+    expect(
+      stringWhenLengthIsGreaterThanZeroAndListIsNotEmpty(
+        100,
+        Text.alphabetUpper,
+      ),
+      validator.getDescription(),
+    );
 
     // Test numbers
     validator = Text(length: 100, allowList: Text.numbers);
@@ -50,6 +84,13 @@ void main() async {
     expect(true, validator.isValid('123'));
     expect(false, validator.isValid('123 456'));
     expect(false, validator.isValid('hello123'));
+    expect(
+      stringWhenLengthIsGreaterThanZeroAndListIsNotEmpty(
+        100,
+        Text.numbers,
+      ),
+      validator.getDescription(),
+    );
 
     // Test combination of allowLists
     validator = Text(
@@ -82,5 +123,20 @@ void main() async {
     expect(true, validator.isValid('hell'));
     expect(true, validator.isValid('hello'));
     expect(false, validator.isValid('hellow'));
+
+    // Test when length is 0 and List is empty
+    validator = Text();
+    expect(false, validator.isArray());
+    expect(true, validator.isValid('qwertzuiopasdfghjklyxcvbnm'));
+    expect(true, validator.isValid('hello'));
+    expect(true, validator.isValid('world'));
+    expect(true, validator.isValid('hello world'));
+    expect(true, validator.isValid('Hello'));
+    expect(true, validator.isValid('worlD'));
+    expect(true, validator.isValid('hello123'));
+    expect(
+      message,
+      validator.getDescription(),
+    );
   });
 }
