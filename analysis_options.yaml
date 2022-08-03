@@ -1,0 +1,8 @@
+include: package:lints/recommended.yaml
+linter:
+  rules:
+    - prefer_relative_imports
+    - avoid_relative_lib_imports
+    - require_trailing_commas
+    - always_declare_return_types
+    - directives_ordering
