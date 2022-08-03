@@ -6,12 +6,15 @@ void main() {
 
   const stringValue = 'Value must be a valid number';
 
-  test('Numeric object:', () {
-    expect(stringValue, numeric.getDescription());
-    expect(Types.num.name, numeric.getType());
-    expect(false, numeric.isArray());
-    expect(true, numeric.isValid(1));
-    expect(true, numeric.isValid(1.0));
-    expect(false, numeric.isValid('1'));
-  });
+  test(
+    'Numeric object:',
+    () {
+      expect(numeric.getDescription(), stringValue);
+      expect(numeric.getType(), Types.num.name);
+      expect(numeric.isArray(), false);
+      expect(numeric.isValid(1), true);
+      expect(numeric.isValid(1.0), true);
+      expect(numeric.isValid('1'), false);
+    },
+  );
 }
