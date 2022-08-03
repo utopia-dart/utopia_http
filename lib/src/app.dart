@@ -344,22 +344,24 @@ class App {
 
     if (!_sorted) {
       _routes.forEach((method, pathRoutes) {
-        _routes[method] =
-            Map<String, Route>.fromEntries(_routes[method]!.entries.toList()
-              ..sort((a, b) {
-                return b.key.length - a.key.length;
-              }));
+        _routes[method] = Map<String, Route>.fromEntries(
+          _routes[method]!.entries.toList()
+            ..sort((a, b) {
+              return b.key.length - a.key.length;
+            }),
+        );
 
-        _routes[method] =
-            Map<String, Route>.fromEntries(_routes[method]!.entries.toList()
-              ..sort((a, b) {
-                int result = b.key.split('/').length - a.key.split('/').length;
-                if (result == 0) {
-                  return (a.key.split(':').length - 1) -
-                      (b.key.split(':').length - 1);
-                }
-                return result;
-              }));
+        _routes[method] = Map<String, Route>.fromEntries(
+          _routes[method]!.entries.toList()
+            ..sort((a, b) {
+              int result = b.key.split('/').length - a.key.split('/').length;
+              if (result == 0) {
+                return (a.key.split(':').length - 1) -
+                    (b.key.split(':').length - 1);
+              }
+              return result;
+            }),
+        );
       });
     }
     _sorted = true;
