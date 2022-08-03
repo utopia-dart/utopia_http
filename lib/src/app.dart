@@ -224,18 +224,16 @@ class App {
     List<String> groups,
     Future<Map<String, dynamic>> Function(Hook) argsCallback, {
     bool globalHook = false,
-    bool reversedExecution = false,
+    bool globalHooksFirst = true,
   }) async {
     Future<void> executeGlobalHook() async {
-      if (globalHook) {
-        for (final hook in hooks) {
-          if (hook.getGroups().contains('*')) {
-            final arguments = await argsCallback.call(hook);
-            Function.apply(
-              hook.getAction(),
-              [...hook.argsOrder.map((key) => arguments[key])],
-            );
-          }
+      for (final hook in hooks) {
+        if (hook.getGroups().contains('*')) {
+          final arguments = await argsCallback.call(hook);
+          Function.apply(
+            hook.getAction(),
+            [...hook.argsOrder.map((key) => arguments[key])],
+          );
         }
       }
     }
@@ -254,11 +252,11 @@ class App {
       }
     }
 
-    if (!reversedExecution) {
+    if (globalHooksFirst && globalHook) {
       await executeGlobalHook();
     }
     await executeGroupHooks();
-    if (reversedExecution) {
+    if (!globalHooksFirst && globalHook) {
       await executeGlobalHook();
     }
   }
@@ -309,10 +307,10 @@ class App {
           values: values,
         ),
         globalHook: route.hook,
-        reversedExecution: true,
+        globalHooksFirst: false,
       );
 
-      return response;
+      return response ?? getResource('response');
     } on Exception catch (e) {
       setResource('error', () => e);
       await _executeHooks(
@@ -324,7 +322,7 @@ class App {
           values: values,
         ),
         globalHook: route.hook,
-        reversedExecution: true,
+        globalHooksFirst: false,
       );
 
       if (e is ValidationException) {
@@ -386,7 +384,7 @@ class App {
             requestParams: await request.getParams(),
           ),
           globalHook: true,
-          reversedExecution: true,
+          globalHooksFirst: false,
         );
         return getResource('response');
       } on Exception catch (e) {

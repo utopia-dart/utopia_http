@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'response.dart';
 import 'validators/validator.dart';
 
 class Hook {
@@ -7,7 +10,7 @@ class Hook {
   final Map<String, Param> _params = {};
   final List<String> _injections = [];
   late int order;
-  late dynamic _action;
+  late Function _action;
 
   final List<String> _argsOrder = [];
 
