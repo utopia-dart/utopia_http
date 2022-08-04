@@ -428,6 +428,7 @@ class App {
     _sorted = false;
     _matchedRoute.clear();
     _matches.clear();
+    _resources.clear();
     mode = null;
   }
 
