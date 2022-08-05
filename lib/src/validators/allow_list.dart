@@ -14,7 +14,7 @@ class AllowList<T> extends Validator {
 
   @override
   String getType() {
-    return T.runtimeType.toString();
+    return T.toString();
   }
 
   @override

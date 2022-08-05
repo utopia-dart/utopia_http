@@ -19,7 +19,7 @@ class Numeric extends Validator {
 
   @override
   bool isValid(value) {
-    if (value is! int && value is! double && value is! num) {
+    if (value is! num) {
       return false;
     }
     return true;
