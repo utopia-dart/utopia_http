@@ -1,1 +1,1 @@
-enum Types { string, num, dynamic, bool, int, double, list, JSON }
+enum Types { string, num, dynamic, bool, int, double, list, json }
