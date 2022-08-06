@@ -2,7 +2,7 @@
 /// features for profressional, simple, advanced and secure web development
 ///
 /// More dartdocs go here.
-library utopia_dart_framework;
+library utopia_framework;
 
 export 'src/app.dart';
 export 'src/app_mode.dart';
