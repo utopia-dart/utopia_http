@@ -21,6 +21,16 @@ class Range extends Numeric {
   }
 
   @override
+  String getDescription() {
+    return 'Value must be a valid range between $min and $_max';
+  }
+
+  @override
+  bool isArray() {
+    return false;
+  }
+
+  @override
   bool isValid(dynamic value) {
     if (!super.isValid(value)) {
       return false;
