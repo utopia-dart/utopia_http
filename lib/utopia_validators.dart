@@ -1,5 +1,7 @@
 export 'src/validators/allow_list.dart';
 export 'src/validators/array_list.dart';
+export 'src/validators/hex_color.dart';
+export 'src/validators/hostname.dart';
 export 'src/validators/numeric.dart';
 export 'src/validators/range.dart';
 export 'src/validators/text.dart';
