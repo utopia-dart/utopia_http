@@ -16,6 +16,12 @@ void initApp(App app) {
     return response;
   });
 
+  app.get('/').action(() {
+    return Response('Hello!');
+  });
+
+  app.get('/empty').action(() {});
+
   app
       .post('/create')
       .param(key: 'userId')

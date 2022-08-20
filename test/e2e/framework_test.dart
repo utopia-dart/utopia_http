@@ -14,6 +14,8 @@ void main() {
 
     test('Basic Response', basicResponseTest);
 
+    test('No param, injection', noParamInjectionTest);
+
     test('Param', paramsTest);
 
     test('Param Validation', paramValidationTest);
@@ -45,9 +47,6 @@ void fileUpload() async {
   final out = await utf8.decodeStream(res.stream);
   expect(res.statusCode, 200);
   expect(out, 'index');
-
-  print(out);
-  print(res.statusCode);
 }
 
 void staticFileTest() async {
@@ -99,6 +98,22 @@ void paramsTest() async {
   final res = await req.close();
   final output = await utf8.decodeStream(res);
   expect(output, 'myuserid');
+}
+
+void noParamInjectionTest() async {
+  final client = HttpClient();
+  final req = await client.getUrl(Uri.parse('http://localhost:3030'));
+  final res = await req.close();
+  final output = await utf8.decodeStream(res);
+  expect(output, 'Hello!');
+}
+
+void actionNullReturnTest() async {
+  final client = HttpClient();
+  final req = await client.getUrl(Uri.parse('http://localhost:3030/empty'));
+  final res = await req.close();
+  final output = await utf8.decodeStream(res);
+  expect(output, '');
 }
 
 void basicResponseTest() async {
