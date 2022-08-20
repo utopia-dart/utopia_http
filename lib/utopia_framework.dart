@@ -10,3 +10,4 @@ export 'src/response.dart';
 export 'src/route.dart';
 export 'src/server.dart';
 export 'src/servers/shelf.dart';
+export 'src/validation_exception.dart';
