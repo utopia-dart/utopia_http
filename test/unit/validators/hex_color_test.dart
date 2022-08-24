@@ -34,8 +34,14 @@ void main() {
         'isValid(): should return true if the string is a valid string',
         () {
           expect(hexColor.isValid(1), false);
-          expect(hexColor.isValid('abc'), false);
-          expect(hexColor.isValid('#FF7723'), true);
+          expect(hexColor.isValid('AB10BC99'), false);
+          expect(hexColor.isValid('AR1012'), false);
+          expect(hexColor.isValid('ab12bc99'), false);
+          expect(hexColor.isValid('00'), false);
+          expect(hexColor.isValid('ffff'), false);
+          expect(hexColor.isValid('000'), true);
+          expect(hexColor.isValid('ffffff'), true);
+          expect(hexColor.isValid('000000'), true);
         },
       );
     },
