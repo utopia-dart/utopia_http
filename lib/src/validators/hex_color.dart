@@ -20,7 +20,7 @@ class HexColor extends Validator {
   @override
   bool isValid(dynamic value) {
     if (value is String &&
-        RegExp('/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\$/').hasMatch(value)) {
+        RegExp(r'^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$').hasMatch(value)) {
       return true;
     }
     return false;

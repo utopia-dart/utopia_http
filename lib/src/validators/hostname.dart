@@ -26,6 +26,7 @@ class Hostname extends Validator {
     if (value is! String || value.isEmpty) return false;
     if (value.length > 253) return false;
     if (value.contains('/')) return false;
+    if (value.contains(':')) return false;
     if (_allowList.isEmpty) return true;
     for (final allowedHostname in _allowList) {
       if (value == allowedHostname || allowedHostname == '*') return true;

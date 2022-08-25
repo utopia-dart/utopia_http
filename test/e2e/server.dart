@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:utopia_framework/src/validation_exception.dart';
+
 import 'package:utopia_framework/src/validators/text.dart';
 import 'package:utopia_framework/utopia_framework.dart';
 
