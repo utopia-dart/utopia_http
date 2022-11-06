@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'app_mode.dart';
 import 'hook.dart';
 import 'request.dart';
@@ -8,6 +9,17 @@ import 'route.dart';
 import 'server.dart';
 import 'validation_exception.dart';
 
+/// this is a app class
+/// which have collections of api call request methods
+/// get for getting data from server
+/// post request for server
+/// put request for the send data and create or update a resource
+/// patch for making partial changes to an existing resources.
+/// delete for deleting from server
+/// and head for headers that would be returned if the head request url was instead requested with
+/// HTTP methods
+/// storing String and Route value on Map
+/// Request is a function for calling HTTP methods
 class App {
   final Map<String, Map<String, Route>> _routes = {
     Request.get: <String, Route>{},
@@ -17,28 +29,61 @@ class App {
     Request.delete: <String, Route>{},
     Request.head: <String, Route>{},
   };
+
+  /// getter method for the routes
   Map<String, Map<String, Route>> get routes => _routes;
+
+  /// geting resourcesCallback from _resourceCallbacks map list
   static final Map<String, _ResourceCallback> _resourceCallbacks = {};
+
+  /// bool value for sorted attribute
   bool _sorted = false;
+
+  /// list of errors getting from Hook
   final List<Hook> _errors = [];
+
+  /// list of init getting from Hook
   final List<Hook> _init = [];
+
+  /// list of shutdown getting from Hook
   final List<Hook> _shutdown = [];
+
+  /// list of options getting from Hook
   final List<Hook> _options = [];
+
+  /// Server request class
+  /// can be null from here
   HttpServer? _server;
 
+  /// appMode getting from enum
+  /// can be null here
   AppMode? mode;
 
+  ///getting bool value for the Appmode conditons
+  ///may be production
+  ///development or State
   bool get isProduction => mode == AppMode.production;
+
   bool get isDevelopment => mode == AppMode.development;
+
   bool get isStage => mode == AppMode.stage;
+
+  /// getter for the HttpServer
   HttpServer? get server => _server;
 
+  /// map list of string or dynamic for the Resources
   final Map<String, dynamic> _resources = {
     'error': null,
   };
 
+  ///map list of String or route for checking condition of matchedRoute
   final Map<String, Route> _matchedRoute = {};
+
+  ///map list of String or route for checking condition of matches
+
   final Map<String, dynamic> _matches = {};
+
+  /// Route which is extended by Hook can be nullable here
   Route? route;
 
   Future<HttpServer> serve(Server server, {String? path}) async {
@@ -128,15 +173,12 @@ class App {
     if (name == 'utopia') {
       throw Exception('utopia is a reserved resource.');
     }
-    _resourceCallbacks[name] =
-        _ResourceCallback(name, injections, callback, reset: true);
+    _resourceCallbacks[name] = _ResourceCallback(name, injections, callback, reset: true);
   }
 
   dynamic getResource(String name, {bool fresh = false}) {
     if (name == 'utopia') return this;
-    if (_resources[name] == null ||
-        fresh ||
-        (_resourceCallbacks[name]?.reset ?? true)) {
+    if (_resources[name] == null || fresh || (_resourceCallbacks[name]?.reset ?? true)) {
       if (_resourceCallbacks[name] == null) {
         throw Exception('Failed to find resource: "$name"');
       }
@@ -164,8 +206,7 @@ class App {
       return _matchedRoute[request.url.path];
     }
 
-    final method =
-        request.method == Request.head ? Request.get : request.method;
+    final method = request.method == Request.head ? Request.get : request.method;
 
     final mroutes = _routes[method]!;
     _matches[request.url.path] ??= [];
@@ -179,18 +220,14 @@ class App {
           }
         }
         route = entry.value;
-        if (route != null &&
-            route!.path == '/' &&
-            '/${request.url.path}' != route!.path) {
+        if (route != null && route!.path == '/' && '/${request.url.path}' != route!.path) {
           return null;
         }
         return route;
       }
     }
 
-    if (route != null &&
-        route!.path == '/' &&
-        '/${request.url.path}' != route!.path) {
+    if (route != null && route!.path == '/' && '/${request.url.path}' != route!.path) {
       return null;
     }
     if (route != null) {
@@ -263,8 +300,7 @@ class App {
 
   FutureOr<Response> execute(Route route, Request request) async {
     final groups = route.getGroups();
-    final keyRegex =
-        '^${route.path.replaceAll(RegExp(':[^/]+'), ':([^/]+)')}\$';
+    final keyRegex = '^${route.path.replaceAll(RegExp(':[^/]+'), ':([^/]+)')}\$';
     var keys = [];
     for (var m in RegExp(keyRegex).allMatches(route.path)) {
       if (m.groupCount > 0 && m[1] != null) {
@@ -354,8 +390,7 @@ class App {
             ..sort((a, b) {
               int result = b.key.split('/').length - a.key.split('/').length;
               if (result == 0) {
-                return (a.key.split(':').length - 1) -
-                    (b.key.split(':').length - 1);
+                return (a.key.split(':').length - 1) - (b.key.split(':').length - 1);
               }
               return result;
             }),
