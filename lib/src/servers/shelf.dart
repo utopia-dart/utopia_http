@@ -33,10 +33,10 @@ class ShelfServer extends Server {
 
   @override
   Future<HttpServer?> serve(Handler handler,
-      {String? path, int thread = 1}) async {
+      {String? path, int threads = 1}) async {
     this.handler = handler;
     this.path = path;
-    await spawnOffIsolates(thread);
+    await spawnOffIsolates(threads);
     return null;
   }
 

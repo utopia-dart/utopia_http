@@ -41,8 +41,8 @@ class App {
   final Map<String, dynamic> _matches = {};
   Route? route;
 
-  Future<HttpServer?> serve(Server server, {String? path}) async {
-    _server = await server.serve((request) => run(request), path: path, thread: 3);
+  Future<HttpServer?> serve(Server server, {String? path, int threads = 1}) async {
+    _server = await server.serve((request) => run(request), path: path, threads: threads);
     print("press any key to exit");
     stdin.readByteSync();
     return _server;
