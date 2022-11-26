@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate' as iso;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_static/shelf_static.dart';
@@ -14,23 +15,35 @@ class ShelfServer extends Server {
 
   ShelfServer(super.address, super.port, {super.securityContext});
 
-  @override
-  Future<HttpServer> serve(Handler handler, {String? path}) async {
-    this.handler = handler;
-    this.path = path;
-
+  Future<HttpServer> onIsolateMain(String message) async {
     server = await shelf_io.serve(
       path != null
           ? shelf.Cascade()
-              .add(createStaticHandler(path))
+              .add(createStaticHandler(path!))
               .add(_handleRequest)
               .handler
           : _handleRequest,
       address,
       port,
       securityContext: securityContext,
+      shared: true,
     );
     return server!;
+  }
+
+  @override
+  Future<HttpServer?> serve(Handler handler,
+      {String? path, int thread = 1}) async {
+    this.handler = handler;
+    this.path = path;
+    await spawnOffIsolates(thread);
+    return null;
+  }
+
+  Future<void> spawnOffIsolates(int num) async {
+    for (var i = 0; i < num; i++) {
+      iso.Isolate.spawn(onIsolateMain, "$i");
+    }
   }
 
   FutureOr<shelf.Response> _handleRequest(shelf.Request sheflRequest) async {

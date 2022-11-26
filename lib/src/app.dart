@@ -41,9 +41,11 @@ class App {
   final Map<String, dynamic> _matches = {};
   Route? route;
 
-  Future<HttpServer> serve(Server server, {String? path}) async {
-    _server = await server.serve((request) => run(request), path: path);
-    return _server!;
+  Future<HttpServer?> serve(Server server, {String? path}) async {
+    _server = await server.serve((request) => run(request), path: path, thread: 3);
+    print("press any key to exit");
+    stdin.readByteSync();
+    return _server;
   }
 
   Route get(String url) {

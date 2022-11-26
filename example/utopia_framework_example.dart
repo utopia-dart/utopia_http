@@ -65,6 +65,6 @@ void main() async {
 
   final address = InternetAddress.anyIPv4;
   final port = App.getEnv('PORT', 8080);
-  await app.serve(ShelfServer(address, port));
+  app.serve(ShelfServer(address, port));
   print("server started at ${address.address}:$port");
 }
