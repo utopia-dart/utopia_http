@@ -24,24 +24,6 @@ class IsolateMessage {
   });
 }
 
-Future<void> onIsolateMain(IsolateMessage message) async {
-  final server = await shelf_io.serve(
-    message.path != null
-        ? shelf.Cascade()
-            .add(createStaticHandler(message.path!))
-            .add(
-              (request) => ShelfServer._handleRequest(request, message.handler),
-            )
-            .handler
-        : (request) => ShelfServer._handleRequest(request, message.handler),
-    message.address,
-    message.port,
-    securityContext: message.securityContext,
-    shared: true,
-  );
-  ShelfServer._servers.add(server);
-}
-
 class ShelfServer extends Server {
   static final List<HttpServer> _servers = [];
   Handler? handler;
@@ -57,14 +39,33 @@ class ShelfServer extends Server {
   }) async {
     this.handler = handler;
     this.path = path;
-    await spawnOffIsolates(threads);
+    await _spawnOffIsolates(threads);
     return _servers;
   }
 
-  Future<void> spawnOffIsolates(int num) async {
+  static Future<void> _onIsolateMain(IsolateMessage message) async {
+    final server = await shelf_io.serve(
+      message.path != null
+          ? shelf.Cascade()
+              .add(createStaticHandler(message.path!))
+              .add(
+                (request) =>
+                    _handleRequest(request, message.handler),
+              )
+              .handler
+          : (request) => _handleRequest(request, message.handler),
+      message.address,
+      message.port,
+      securityContext: message.securityContext,
+      shared: true,
+    );
+    _servers.add(server);
+  }
+
+  Future<void> _spawnOffIsolates(int num) async {
     for (var i = 0; i < num; i++) {
       await iso.Isolate.spawn<IsolateMessage>(
-        onIsolateMain,
+        _onIsolateMain,
         IsolateMessage(
           handler: handler!,
           address: address,
