@@ -73,6 +73,8 @@ void main() async {
 
   final address = InternetAddress.anyIPv4;
   final port = App.getEnv('PORT', 8080);
-  App.serve(app, ShelfServer(address, port), threads: 8);
+  await App.serve(app, ShelfServer(address, port), threads: 8);
   print("server started at http://${address.address}:$port");
+  print('press any key to exit.');
+  stdin.readByteSync();
 }

@@ -78,8 +78,9 @@ void initApp(App app) {
   });
 }
 
-Future<void> shelfServer() async {
+Future<App> shelfServer() async {
   final app = App();
   initApp(app);
-  App.serve(app, ShelfServer('localhost', 3030), path: 'test/e2e/public');
+  await App.serve(app, ShelfServer('localhost', 3030), path: 'test/e2e/public');
+  return app;
 }

@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
+import 'package:utopia_framework/src/app.dart';
 
 import 'server.dart' as server;
 
 void main() {
   group('Framework Shelf Server', () {
-    HttpServer? ser;
+    App? app;
     setUp(() async {
-      await server.shelfServer();
+      app = await server.shelfServer();
     });
 
     test('Basic Response', basicResponseTest);
@@ -27,7 +28,7 @@ void main() {
     test('file upload', fileUpload);
 
     tearDown(() async {
-      await ser?.close();
+      await app?.closeServer();
     });
   });
 }
