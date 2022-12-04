@@ -9,7 +9,7 @@ void main() {
   group('Framework Shelf Server', () {
     HttpServer? ser;
     setUp(() async {
-      ser = await server.shelfServer();
+      await server.shelfServer();
     });
 
     test('Basic Response', basicResponseTest);

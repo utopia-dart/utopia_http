@@ -8,51 +8,84 @@ import '../request.dart';
 import '../response.dart';
 import '../server.dart';
 
+class IsolateMessage {
+  final Handler handler;
+  final SecurityContext? securityContext;
+  final dynamic address;
+  final int port;
+  final String? path;
+
+  IsolateMessage({
+    required this.handler,
+    required this.address,
+    required this.port,
+    this.path,
+    this.securityContext,
+  });
+}
+
+Future<void> onIsolateMain(IsolateMessage message) async {
+  final server = await shelf_io.serve(
+    message.path != null
+        ? shelf.Cascade()
+            .add(createStaticHandler(message.path!))
+            .add(
+              (request) => ShelfServer._handleRequest(request, message.handler),
+            )
+            .handler
+        : (request) => ShelfServer._handleRequest(request, message.handler),
+    message.address,
+    message.port,
+    securityContext: message.securityContext,
+    shared: true,
+  );
+  ShelfServer._servers.add(server);
+}
+
 class ShelfServer extends Server {
-  HttpServer? server;
+  static final List<HttpServer> _servers = [];
   Handler? handler;
   String? path;
 
   ShelfServer(super.address, super.port, {super.securityContext});
 
-  Future<HttpServer> onIsolateMain(String message) async {
-    server = await shelf_io.serve(
-      path != null
-          ? shelf.Cascade()
-              .add(createStaticHandler(path!))
-              .add(_handleRequest)
-              .handler
-          : _handleRequest,
-      address,
-      port,
-      securityContext: securityContext,
-      shared: true,
-    );
-    return server!;
-  }
-
   @override
-  Future<HttpServer?> serve(Handler handler,
-      {String? path, int threads = 1}) async {
+  Future<List<HttpServer>> serve(
+    Handler handler, {
+    String? path,
+    int threads = 1,
+  }) async {
     this.handler = handler;
     this.path = path;
     await spawnOffIsolates(threads);
-    return null;
+    return _servers;
   }
 
   Future<void> spawnOffIsolates(int num) async {
     for (var i = 0; i < num; i++) {
-      iso.Isolate.spawn(onIsolateMain, "$i");
+      await iso.Isolate.spawn<IsolateMessage>(
+        onIsolateMain,
+        IsolateMessage(
+          handler: handler!,
+          address: address,
+          port: port,
+          securityContext: securityContext,
+          path: path,
+        ),
+      );
     }
   }
 
-  FutureOr<shelf.Response> _handleRequest(shelf.Request sheflRequest) async {
+  static FutureOr<shelf.Response> _handleRequest(
+    shelf.Request sheflRequest,
+    Handler handler,
+  ) async {
     final request = _fromShelfRequest(sheflRequest);
-    final response = await handler!.call(request);
+    final response = await handler.call(request);
     return _toShelfResponse(response);
   }
 
-  Request _fromShelfRequest(shelf.Request shelfRequest) {
+  static Request _fromShelfRequest(shelf.Request shelfRequest) {
     return Request(
       shelfRequest.method,
       shelfRequest.url,
@@ -63,7 +96,7 @@ class ShelfServer extends Server {
     );
   }
 
-  shelf.Response _toShelfResponse(Response response) {
+  static shelf.Response _toShelfResponse(Response response) {
     final res = shelf.Response(
       response.status,
       body: response.body,

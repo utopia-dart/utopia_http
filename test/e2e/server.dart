@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:utopia_framework/src/validators/text.dart';
 import 'package:utopia_framework/utopia_framework.dart';
 
@@ -80,8 +78,8 @@ void initApp(App app) {
   });
 }
 
-Future<HttpServer> shelfServer() async {
+Future<void> shelfServer() async {
   final app = App();
   initApp(app);
-  return app.serve(ShelfServer('localhost', 3030), path: 'test/e2e/public');
+  App.serve(app, ShelfServer('localhost', 3030), path: 'test/e2e/public');
 }
