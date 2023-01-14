@@ -411,6 +411,9 @@ class App {
     final response = getResource('response');
     response.text('Not Found');
     response.status = 404;
+
+    _resources.clear(); // for each run, resources should be re-generated from callbacks
+
     return response;
   }
 
