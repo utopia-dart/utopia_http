@@ -1,4 +1,4 @@
-import 'package:utopia_framework/src/validators/text.dart';
+import 'package:utopia_di/utopia_validators.dart';
 import 'package:utopia_framework/utopia_framework.dart';
 
 void initApp(App app) {

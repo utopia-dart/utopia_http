@@ -1,4 +1,4 @@
-import 'hook.dart';
+import 'package:utopia_di/utopia_di.dart';
 
 class Route extends Hook {
   String method = '';
