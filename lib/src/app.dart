@@ -24,14 +24,14 @@ class App {
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
   final List<Hook> _options = [];
-  HttpServer? _server;
+  List<HttpServer> _servers = [];
 
   AppMode? mode;
 
   bool get isProduction => mode == AppMode.production;
   bool get isDevelopment => mode == AppMode.development;
   bool get isStage => mode == AppMode.stage;
-  HttpServer? get server => _server;
+  List<HttpServer> get servers => _servers;
 
   final Map<String, dynamic> _resources = {
     'error': null,
@@ -41,9 +41,18 @@ class App {
   final Map<String, dynamic> _matches = {};
   Route? route;
 
-  Future<HttpServer> serve(Server server, {String? path}) async {
-    _server = await server.serve((request) => run(request), path: path);
-    return _server!;
+  static Future<List<HttpServer>> serve(
+    App app,
+    Server server, {
+    String? path,
+    int threads = 1,
+  }) async {
+    app._servers = await server.serve(
+      app.run,
+      path: path,
+      threads: threads,
+    );
+    return app._servers;
   }
 
   Route get(String url) {
@@ -402,6 +411,9 @@ class App {
     final response = getResource('response');
     response.text('Not Found');
     response.status = 404;
+
+    _resources.clear(); // for each run, resources should be re-generated from callbacks
+
     return response;
   }
 
@@ -432,8 +444,10 @@ class App {
     mode = null;
   }
 
-  Future<dynamic> closeServer({bool force = false}) async {
-    return _server?.close(force: force);
+  Future<void> closeServer({bool force = false}) async {
+    for (final server in _servers) {
+      await server.close(force: force);
+    }
   }
 
   static void resetResources() {
