@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
+
+import 'package:utopia_di/utopia_di.dart';
+
 import 'app_mode.dart';
-import 'hook.dart';
 import 'request.dart';
 import 'response.dart';
 import 'route.dart';
@@ -9,6 +11,11 @@ import 'server.dart';
 import 'validation_exception.dart';
 
 class App {
+  App() {
+    di = DI();
+  }
+
+  late DI di;
   final Map<String, Map<String, Route>> _routes = {
     Request.get: <String, Route>{},
     Request.post: <String, Route>{},
@@ -18,7 +25,6 @@ class App {
     Request.head: <String, Route>{},
   };
   Map<String, Map<String, Route>> get routes => _routes;
-  static final Map<String, _ResourceCallback> _resourceCallbacks = {};
   bool _sorted = false;
   final List<Hook> _errors = [];
   final List<Hook> _init = [];
@@ -32,10 +38,6 @@ class App {
   bool get isDevelopment => mode == AppMode.development;
   bool get isStage => mode == AppMode.stage;
   List<HttpServer> get servers => _servers;
-
-  final Map<String, dynamic> _resources = {
-    'error': null,
-  };
 
   final Map<String, Route> _matchedRoute = {};
   final Map<String, dynamic> _matches = {};
@@ -112,7 +114,7 @@ class App {
 
   Route? getRoute() {
     try {
-      final request = getResource('request');
+      final request = di.getResource('request');
       return _matchedRoute[request.url.path];
     } catch (e) {
       return null;
@@ -121,7 +123,7 @@ class App {
 
   App setRoute(Route route) {
     try {
-      final request = getResource('request');
+      final request = di.getResource('request');
       _matchedRoute[request.url.path];
     } catch (e) {
       throw Exception('Unable to set route at this context');
@@ -129,44 +131,12 @@ class App {
     return this;
   }
 
-  static void setResource(
-    String name,
-    Function callback, {
-    List<String> injections = const [],
-  }) {
-    if (name == 'utopia') {
-      throw Exception('utopia is a reserved resource.');
-    }
-    _resourceCallbacks[name] =
-        _ResourceCallback(name, injections, callback, reset: true);
-  }
+  void setResource(String name, Function callback,
+          {List<String> injections = const []}) =>
+      di.setResource(name, callback, injections: injections);
 
-  dynamic getResource(String name, {bool fresh = false}) {
-    if (name == 'utopia') return this;
-    if (_resources[name] == null ||
-        fresh ||
-        (_resourceCallbacks[name]?.reset ?? true)) {
-      if (_resourceCallbacks[name] == null) {
-        throw Exception('Failed to find resource: "$name"');
-      }
-
-      final params = getResources(_resourceCallbacks[name]!.injections);
-      _resources[name] = Function.apply(
-        _resourceCallbacks[name]!.callback,
-        [...params.values],
-      );
-    }
-    _resourceCallbacks[name] = _resourceCallbacks[name]!.copyWith(reset: false);
-    return _resources[name];
-  }
-
-  Map<String, dynamic> getResources(List<String> names) {
-    final resources = <String, dynamic>{};
-    for (final name in names) {
-      resources[name] = getResource(name);
-    }
-    return resources;
-  }
+  dynamic getResource(String name, {bool fresh = false}) =>
+      di.getResource(name, fresh: fresh);
 
   Route? match(Request request) {
     if (_matchedRoute[request.url.path] != null) {
@@ -223,7 +193,7 @@ class App {
     });
 
     for (var injection in hook.injections) {
-      args[injection] = getResource(injection);
+      args[injection] = di.getResource(injection);
     }
     return args;
   }
@@ -319,9 +289,9 @@ class App {
         globalHooksFirst: false,
       );
 
-      return response ?? getResource('response');
+      return response ?? di.getResource('response');
     } on Exception catch (e) {
-      setResource('error', () => e);
+      di.setResource('error', () => e);
       await _executeHooks(
         _errors,
         groups,
@@ -335,18 +305,20 @@ class App {
       );
 
       if (e is ValidationException) {
-        final response = getResource('response');
+        final response = di.getResource('response');
         response.status = 400;
       }
     }
-    return getResource('response');
+    return di.getResource('response');
   }
 
   FutureOr<Response> run(Request request) async {
-    setResource('request', () => request);
+    di.setResource('request', () => request);
 
-    if (_resourceCallbacks['response'] == null) {
-      setResource('response', () => Response(''));
+    try {
+      di.getResource('response');
+    } catch (e) {
+      di.setResource('response', () => Response(''));
     }
 
     if (!_sorted) {
@@ -395,24 +367,24 @@ class App {
           globalHook: true,
           globalHooksFirst: false,
         );
-        return getResource('response');
+        return di.getResource('response');
       } on Exception catch (e) {
         for (final hook in _errors) {
-          setResource('error', () => e);
+          di.setResource('error', () => e);
           if (hook.getGroups().contains('*')) {
             hook.getAction().call(
                   _getArguments(hook, requestParams: await request.getParams()),
                 );
           }
         }
-        return getResource('response');
+        return di.getResource('response');
       }
     }
-    final response = getResource('response');
+    final response = di.getResource('response');
     response.text('Not Found');
     response.status = 404;
 
-    _resources.clear(); // for each run, resources should be re-generated from callbacks
+    di.reset(); // for each run, resources should be re-generated from callbacks
 
     return response;
   }
@@ -440,7 +412,6 @@ class App {
     _sorted = false;
     _matchedRoute.clear();
     _matches.clear();
-    _resources.clear();
     mode = null;
   }
 
@@ -448,27 +419,5 @@ class App {
     for (final server in _servers) {
       await server.close(force: force);
     }
-  }
-
-  static void resetResources() {
-    _resourceCallbacks.clear();
-  }
-}
-
-class _ResourceCallback {
-  final String name;
-  final List<String> injections;
-  final Function callback;
-  final bool reset;
-
-  _ResourceCallback(
-    this.name,
-    this.injections,
-    this.callback, {
-    this.reset = false,
-  });
-
-  _ResourceCallback copyWith({bool? reset}) {
-    return _ResourceCallback(name, injections, callback, reset: reset ?? false);
   }
 }

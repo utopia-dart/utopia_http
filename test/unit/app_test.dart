@@ -1,30 +1,22 @@
 import 'dart:math';
+
 import 'package:test/test.dart';
-import 'package:utopia_framework/src/app.dart';
-import 'package:utopia_framework/src/request.dart';
-import 'package:utopia_framework/src/response.dart';
-import 'package:utopia_framework/src/route.dart';
-import 'package:utopia_framework/src/validators/text.dart';
+import 'package:utopia_di/utopia_validators.dart';
+import 'package:utopia_framework/utopia_framework.dart';
 
 void main() async {
   final app = App();
-  App.setResource('rand', () => Random().nextInt(100));
-  App.setResource(
+  app.setResource('rand', () => Random().nextInt(100));
+  app.setResource(
     'first',
     (String second) => 'first-$second',
     injections: ['second'],
   );
-  App.setResource('second', () => 'second');
+  app.setResource('second', () => 'second');
 
   group('App', () {
-    test('resource', () async {
-      expect(app.getResource('second'), 'second');
-      expect(app.getResource('first'), 'first-second');
+    test('resource injection', () async {
       final resource = app.getResource('rand');
-      assert(resource != null);
-      expect(app.getResource('rand'), resource);
-      expect(app.getResource('rand'), resource);
-      expect(app.getResource('rand'), resource);
 
       final route = Route('GET', '/path');
       route
