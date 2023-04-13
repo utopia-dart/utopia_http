@@ -127,11 +127,7 @@ class App {
   dynamic getResource(String name, {bool fresh = false}) =>
       di.getResource(name, fresh: fresh);
 
-  Route? match(Request request, {bool fresh = false}) {
-    if (route != null && !fresh) {
-      return route;
-    }
-
+  Route? match(Request request) {
     var method = request.method;
     method = (method == Request.head) ? Request.get : method;
     route = _router.match(method, request.url.path);
