@@ -81,7 +81,7 @@ class Router {
         var ret = [element, ...combination];
         results.add(ret);
 
-        yield ret as List<T>;
+        yield List<T>.from(ret);
       }
     }
   }
