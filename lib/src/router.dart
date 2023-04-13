@@ -71,19 +71,19 @@ class Router {
     return null;
   }
 
-  Iterable<List<T>> combinations<T>(List<T> set) sync* {
-    yield [];
+  Iterable<List<T>> combinations<T>(List<T> set) {
+    final result = <List<T>>[[]];
 
-    var results = [[]];
-
-    for (var element in set) {
-      for (var combination in results) {
-        var ret = [element, ...combination];
-        results.add(ret);
-
-        yield List<T>.from(ret);
+    for (final element in set) {
+      final newCombinations = <List<T>>[];
+      for (final combination in result) {
+        final ret = [element, ...combination];
+        newCombinations.add(ret);
       }
+      result.addAll(newCombinations);
     }
+
+    return result;
   }
 
   List<dynamic> preparePath(String path) {
