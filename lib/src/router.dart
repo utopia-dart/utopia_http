@@ -59,8 +59,10 @@ class Router {
       String match = parts
           .asMap()
           .entries
-          .map((entry) =>
-              sample.contains(entry.key) ? placeholderToken : entry.value)
+          .map(
+            (entry) =>
+                sample.contains(entry.key) ? placeholderToken : entry.value,
+          )
           .join('/');
 
       if (_routes[method]!.containsKey(match)) {

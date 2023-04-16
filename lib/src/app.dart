@@ -120,8 +120,11 @@ class App {
     return route;
   }
 
-  void setResource(String name, Function callback,
-          {List<String> injections = const []}) =>
+  void setResource(
+    String name,
+    Function callback, {
+    List<String> injections = const [],
+  }) =>
       di.setResource(name, callback, injections: injections);
 
   dynamic getResource(String name, {bool fresh = false}) =>

@@ -19,9 +19,9 @@ void main() {
 
       expect(router.match(Request.get, '/'), equals(routeIndex));
       expect(
-          router.match(Request.get, '/about'), equals(routeAbout));
+          router.match(Request.get, '/about'), equals(routeAbout),);
       expect(router.match(Request.get, '/about/me'),
-          equals(routeAboutMe));
+          equals(routeAboutMe),);
     });
 
     test('Can match URL with placeholder', () {
@@ -44,17 +44,17 @@ void main() {
 
       expect(router.match(Request.get, '/blog'), equals(routeBlog));
       expect(router.match(Request.get, '/blog/authors'),
-          equals(routeBlogAuthors));
+          equals(routeBlogAuthors),);
       expect(router.match(Request.get, '/blog/authors/comments'),
-          equals(routeBlogAuthorsComments));
+          equals(routeBlogAuthorsComments),);
       expect(router.match(Request.get, '/blog/:post'),
-          equals(routeBlogPost));
+          equals(routeBlogPost),);
       expect(router.match(Request.get, '/blog/:post/comments'),
      
-          equals(routeBlogPostComments));
+          equals(routeBlogPostComments),);
       expect(
           router.match(Request.get, '/blog/:post/comments/:comment'),
-          equals(routeBlogPostCommentsSingle));
+          equals(routeBlogPostCommentsSingle),);
     });
 
     test('Can match HTTP method', () {
