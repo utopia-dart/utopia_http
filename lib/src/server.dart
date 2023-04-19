@@ -12,6 +12,9 @@ abstract class Server {
 
   Server(this.address, this.port, {this.securityContext});
 
-  Future<List<HttpServer>> serve(Handler handler,
-      {String? path, int threads = 1});
+  Future<List<HttpServer>> serve(
+    Handler handler, {
+    String? path,
+    int threads = 1,
+  });
 }

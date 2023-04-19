@@ -7,12 +7,14 @@ import 'app_mode.dart';
 import 'request.dart';
 import 'response.dart';
 import 'route.dart';
+import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
 
 class App {
   App() {
     di = DI();
+    _router = Router();
   }
 
   late DI di;
@@ -25,12 +27,15 @@ class App {
     Request.head: <String, Route>{},
   };
   Map<String, Map<String, Route>> get routes => _routes;
-  bool _sorted = false;
   final List<Hook> _errors = [];
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
   final List<Hook> _options = [];
   List<HttpServer> _servers = [];
+
+  late final Router _router;
+
+  Route? _wildcardRoute;
 
   AppMode? mode;
 
@@ -39,8 +44,7 @@ class App {
   bool get isStage => mode == AppMode.stage;
   List<HttpServer> get servers => _servers;
 
-  final Map<String, Route> _matchedRoute = {};
-  final Map<String, dynamic> _matches = {};
+  /// Memory cached result for chosen route
   Route? route;
 
   static Future<List<HttpServer>> serve(
@@ -77,6 +81,11 @@ class App {
     return addRoute(Request.delete, url);
   }
 
+  Route wildcard() {
+    _wildcardRoute = Route('', '');
+    return _wildcardRoute!;
+  }
+
   Hook init() {
     final hook = Hook()..groups(['*']);
     _init.add(hook);
@@ -107,74 +116,24 @@ class App {
 
   Route addRoute(String method, String path) {
     final route = Route(method, path);
-    _routes[method]![path] = route;
-    _sorted = false;
+    _router.addRoute(route);
     return route;
   }
 
-  Route? getRoute() {
-    try {
-      final request = di.getResource('request');
-      return _matchedRoute[request.url.path];
-    } catch (e) {
-      return null;
-    }
-  }
-
-  App setRoute(Route route) {
-    try {
-      final request = di.getResource('request');
-      _matchedRoute[request.url.path];
-    } catch (e) {
-      throw Exception('Unable to set route at this context');
-    }
-    return this;
-  }
-
-  void setResource(String name, Function callback,
-          {List<String> injections = const []}) =>
+  void setResource(
+    String name,
+    Function callback, {
+    List<String> injections = const [],
+  }) =>
       di.setResource(name, callback, injections: injections);
 
   dynamic getResource(String name, {bool fresh = false}) =>
       di.getResource(name, fresh: fresh);
 
   Route? match(Request request) {
-    if (_matchedRoute[request.url.path] != null) {
-      return _matchedRoute[request.url.path];
-    }
-
-    final method =
-        request.method == Request.head ? Request.get : request.method;
-
-    final mroutes = _routes[method]!;
-    _matches[request.url.path] ??= [];
-    for (final entry in mroutes.entries) {
-      final regex = entry.key.replaceAll(RegExp(':[^/]+'), '([^/]+)');
-      final reqUrl = '/${request.url.path}';
-      if (RegExp(regex).hasMatch(reqUrl)) {
-        for (var m in RegExp(regex).allMatches(reqUrl)) {
-          if (m.groupCount > 0 && m[1] != null) {
-            _matches[request.url.path].add(m[1]!);
-          }
-        }
-        route = entry.value;
-        if (route != null &&
-            route!.path == '/' &&
-            '/${request.url.path}' != route!.path) {
-          return null;
-        }
-        return route;
-      }
-    }
-
-    if (route != null &&
-        route!.path == '/' &&
-        '/${request.url.path}' != route!.path) {
-      return null;
-    }
-    if (route != null) {
-      _matchedRoute[request.url.path] = route!;
-    }
+    var method = request.method;
+    method = (method == Request.head) ? Request.get : method;
+    route = _router.match(method, request.url.path);
     return route;
   }
 
@@ -242,18 +201,7 @@ class App {
 
   FutureOr<Response> execute(Route route, Request request) async {
     final groups = route.getGroups();
-    final keyRegex =
-        '^${route.path.replaceAll(RegExp(':[^/]+'), ':([^/]+)')}\$';
-    var keys = [];
-    for (var m in RegExp(keyRegex).allMatches(route.path)) {
-      if (m.groupCount > 0 && m[1] != null) {
-        keys.add(m[1]!);
-      }
-    }
-    final values = <String, dynamic>{};
-    for (var element in keys) {
-      values[element.toString()] = _matches[request.url.path].removeAt(0);
-    }
+    final pathValues = route.getPathValues(request);
 
     try {
       await _executeHooks(
@@ -262,7 +210,7 @@ class App {
         (hook) async => _getArguments(
           hook,
           requestParams: await request.getParams(),
-          values: values,
+          values: pathValues,
         ),
         globalHook: route.hook,
       );
@@ -270,20 +218,19 @@ class App {
       final args = _getArguments(
         route,
         requestParams: await request.getParams(),
-        values: values,
+        values: pathValues,
       );
       final response = await Function.apply(
         route.getAction(),
         [...route.argsOrder.map((key) => args[key])],
       );
-
       await _executeHooks(
         _shutdown,
         groups,
         (hook) async => _getArguments(
           hook,
           requestParams: await request.getParams(),
-          values: values,
+          values: pathValues,
         ),
         globalHook: route.hook,
         globalHooksFirst: false,
@@ -298,7 +245,7 @@ class App {
         (hook) async => _getArguments(
           hook,
           requestParams: await request.getParams(),
-          values: values,
+          values: pathValues,
         ),
         globalHook: route.hook,
         globalHooksFirst: false,
@@ -321,36 +268,17 @@ class App {
       di.setResource('response', () => Response(''));
     }
 
-    if (!_sorted) {
-      _routes.forEach((method, pathRoutes) {
-        _routes[method] = Map<String, Route>.fromEntries(
-          _routes[method]!.entries.toList()
-            ..sort((a, b) {
-              return b.key.length - a.key.length;
-            }),
-        );
-
-        _routes[method] = Map<String, Route>.fromEntries(
-          _routes[method]!.entries.toList()
-            ..sort((a, b) {
-              int result = b.key.split('/').length - a.key.split('/').length;
-              if (result == 0) {
-                return (a.key.split(':').length - 1) -
-                    (b.key.split(':').length - 1);
-              }
-              return result;
-            }),
-        );
-      });
-    }
-    _sorted = true;
-
-    String method = request.method.toUpperCase();
-    final route = match(request);
-    final groups = route?.getGroups() ?? [];
+    var method = request.method.toUpperCase();
+    var route = match(request);
+    final groups = (route is Route) ? route.getGroups() : <String>[];
 
     if (method == Request.head) {
       method = Request.get;
+    }
+
+    if (route == null && _wildcardRoute != null) {
+      route = _wildcardRoute;
+      route!.path = request.url.path;
     }
 
     if (route != null) {
@@ -405,13 +333,12 @@ class App {
   }
 
   void reset() {
+    _router.reset();
+    di.reset();
     _errors.clear();
     _init.clear();
     _shutdown.clear();
     _options.clear();
-    _sorted = false;
-    _matchedRoute.clear();
-    _matches.clear();
     mode = null;
   }
 

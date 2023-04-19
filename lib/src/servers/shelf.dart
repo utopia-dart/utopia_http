@@ -49,8 +49,7 @@ class ShelfServer extends Server {
           ? shelf.Cascade()
               .add(createStaticHandler(message.path!))
               .add(
-                (request) =>
-                    _handleRequest(request, message.handler),
+                (request) => _handleRequest(request, message.handler),
               )
               .handler
           : (request) => _handleRequest(request, message.handler),
