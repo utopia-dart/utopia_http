@@ -1,8 +1,8 @@
 import 'package:utopia_di/utopia_validators.dart';
-import 'package:utopia_framework/utopia_framework.dart';
+import 'package:utopia_http/utopia_http.dart';
 
-void initApp(App app) {
-  app
+void initHttp(Http http) {
+  http
       .error()
       .inject('error')
       .inject('response')
@@ -14,13 +14,13 @@ void initApp(App app) {
     return response;
   });
 
-  app.get('/').action(() {
+  http.get('/').action(() {
     return Response('Hello!');
   });
 
-  app.get('/empty').action(() {});
+  http.get('/empty').action(() {});
 
-  app
+  http
       .post('/create')
       .param(key: 'userId')
       .param(key: 'file')
@@ -32,7 +32,7 @@ void initApp(App app) {
     return response;
   });
 
-  app
+  http
       .get('/hello')
       .inject('request')
       .inject('response')
@@ -41,7 +41,7 @@ void initApp(App app) {
     return response;
   });
 
-  app
+  http
       .get('/users/:userId')
       .param(
         key: 'userId',
@@ -55,7 +55,7 @@ void initApp(App app) {
     return response;
   });
 
-  app
+  http
       .post('/users')
       .param(key: 'userId')
       .param(key: 'name')
@@ -78,9 +78,9 @@ void initApp(App app) {
   });
 }
 
-Future<App> shelfServer() async {
-  final app = App();
-  initApp(app);
-  await App.serve(app, ShelfServer('localhost', 3030), path: 'test/e2e/public');
-  return app;
+Future<Http> shelfServer() async {
+  final http = Http();
+  initHttp(http);
+  await http.serve(ShelfServer('localhost', 3030), path: 'test/e2e/public');
+  return http;
 }

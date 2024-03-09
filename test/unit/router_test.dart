@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:utopia_framework/utopia_framework.dart';
+import 'package:utopia_http/utopia_http.dart';
 
 void main() {
   final router = Router();

@@ -2,21 +2,21 @@ import 'dart:math';
 
 import 'package:test/test.dart';
 import 'package:utopia_di/utopia_validators.dart';
-import 'package:utopia_framework/utopia_framework.dart';
+import 'package:utopia_http/utopia_http.dart';
 
 void main() async {
-  final app = App();
-  app.setResource('rand', () => Random().nextInt(100));
-  app.setResource(
+  final http = Http();
+  http.setResource('rand', () => Random().nextInt(100));
+  http.setResource(
     'first',
     (String second) => 'first-$second',
     injections: ['second'],
   );
-  app.setResource('second', () => 'second');
+  http.setResource('second', () => 'second');
 
-  group('App', () {
+  group('Http', () {
     test('resource injection', () async {
-      final resource = app.getResource('rand');
+      final resource = http.getResource('rand');
 
       final route = Route('GET', '/path');
       route
@@ -34,7 +34,7 @@ void main() async {
             validator: Text(length: 200),
           )
           .action((int rand, String x, String y) => Response("$x-$y-$rand"));
-      final res = await app.execute(route, Request('GET', Uri.parse('/path')));
+      final res = await http.execute(route, Request('GET', Uri.parse('/path')));
       expect(res.body, 'x-def-y-def-$resource');
     });
   });

@@ -124,10 +124,10 @@ class Http {
     Function callback, {
     List<String> injections = const [],
   }) =>
-      di.setResource(name, callback, injections: injections);
+      di.set(name, callback, injections: injections);
 
   dynamic getResource(String name, {bool fresh = false}) =>
-      di.getResource(name, fresh: fresh);
+      di.get(name, fresh: fresh);
 
   Route? match(Request request) {
     var method = request.method;
@@ -151,7 +151,7 @@ class Http {
     });
 
     for (var injection in hook.injections) {
-      args[injection] = di.getResource(injection);
+      args[injection] = di.get(injection);
     }
     return args;
   }
@@ -235,9 +235,9 @@ class Http {
         globalHooksFirst: false,
       );
 
-      return response ?? di.getResource('response');
+      return response ?? di.get('response');
     } on Exception catch (e) {
-      di.setResource('error', () => e);
+      di.set('error', () => e);
       await _executeHooks(
         _errors,
         groups,
@@ -251,20 +251,20 @@ class Http {
       );
 
       if (e is ValidationException) {
-        final response = di.getResource('response');
+        final response = di.get('response');
         response.status = 400;
       }
     }
-    return di.getResource('response');
+    return di.get('response');
   }
 
   FutureOr<Response> run(Request request) async {
-    di.setResource('request', () => request);
+    di.set('request', () => request);
 
     try {
-      di.getResource('response');
+      di.get('response');
     } catch (e) {
-      di.setResource('response', () => Response(''));
+      di.set('response', () => Response(''));
     }
 
     var method = request.method.toUpperCase();
@@ -294,20 +294,20 @@ class Http {
           globalHook: true,
           globalHooksFirst: false,
         );
-        return di.getResource('response');
+        return di.get('response');
       } on Exception catch (e) {
         for (final hook in _errors) {
-          di.setResource('error', () => e);
+          di.set('error', () => e);
           if (hook.getGroups().contains('*')) {
             hook.getAction().call(
                   _getArguments(hook, requestParams: await request.getParams()),
                 );
           }
         }
-        return di.getResource('response');
+        return di.get('response');
       }
     }
-    final response = di.getResource('response');
+    final response = di.get('response');
     response.text('Not Found');
     response.status = 404;
 
