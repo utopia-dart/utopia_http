@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:utopia_framework/utopia_framework.dart';
+import 'package:utopia_http/utopia_http.dart';
 
 void main() async {
-  final app = App();
+  final app = Http();
   app
       .get('/')
       .inject('request')
@@ -72,8 +72,8 @@ void main() async {
   });
 
   final address = InternetAddress.anyIPv4;
-  final port = App.getEnv('PORT', 8080);
-  await App.serve(app, ShelfServer(address, port), threads: 8);
+  final port = Http.getEnv('PORT', 8080);
+  await app.serve(ShelfServer(address, port), threads: 8);
   print("server started at http://${address.address}:$port");
   print('press any key to exit.');
   stdin.readByteSync();

@@ -11,8 +11,8 @@ import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
 
-class App {
-  App() {
+class Http {
+  Http() {
     di = DI();
     _router = Router();
   }
@@ -47,18 +47,17 @@ class App {
   /// Memory cached result for chosen route
   Route? route;
 
-  static Future<List<HttpServer>> serve(
-    App app,
+  Future<List<HttpServer>> serve(
     Server server, {
     String? path,
     int threads = 1,
   }) async {
-    app._servers = await server.serve(
-      app.run,
+    _servers = await server.serve(
+      run,
       path: path,
       threads: threads,
     );
-    return app._servers;
+    return _servers;
   }
 
   Route get(String url) {
