@@ -126,12 +126,17 @@ class Http {
   void setResource(
     String name,
     Function callback, {
+    String context = 'utopia',
     List<String> injections = const [],
   }) =>
-      di.set(name, callback, injections: injections);
+      di.set(name, callback, injections: injections, context: context);
 
-  dynamic getResource(String name, {bool fresh = false}) =>
-      di.get(name, fresh: fresh);
+  dynamic getResource<T>(
+    String name, {
+    bool fresh = false,
+    String context = 'utopia',
+  }) =>
+      di.get<T>(name, fresh: fresh, context: context);
 
   Route? match(Request request) {
     var method = request.method;
