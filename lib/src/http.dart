@@ -11,21 +11,48 @@ import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
 
+/// Http class used to bootstrap your Http server
+/// You need to use one of the server adapters. Currently only
+/// Shelf adapter is available
+///
+/// Example:
+/// ```dart
+/// void main() async {
+///   final address = InternetAddress.anyIPv4;
+///   final port = Http.getEnv('PORT', 8080);
+///   final app = Http(ShelfServer(address, port), threads: 8);
+///   // setup routes
+///   app.get('/').inject('request').inject('response').action(
+///     (Request request, Response response) {
+///       response.text('Hello world');
+///       return response;
+///     },
+///   );
+///   // sart the server
+///   await app.start();
+/// }
+/// ```
 class Http {
   Http(
     this.server, {
     this.path,
     this.threads = 1,
   }) {
-    di = DI();
+    _di = DI();
     _router = Router();
   }
 
+  /// Server adapter, currently only shelf server is supported
   final Server server;
+
+  /// Number of threads (isolates) to spawn
   final int threads;
+
+  /// Path to server static files from
   final String? path;
 
-  late DI di;
+  late DI _di;
+
   final Map<String, Map<String, Route>> _routes = {
     Request.get: <String, Route>{},
     Request.post: <String, Route>{},
@@ -34,7 +61,10 @@ class Http {
     Request.delete: <String, Route>{},
     Request.head: <String, Route>{},
   };
+
+  /// Configured routes for different methods
   Map<String, Map<String, Route>> get routes => _routes;
+
   final List<Hook> _errors = [];
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
@@ -45,16 +75,25 @@ class Http {
 
   Route? _wildcardRoute;
 
+  /// Application mode
   AppMode? mode;
 
+  /// Is application running in production mode
   bool get isProduction => mode == AppMode.production;
+
+  /// Is application running in development mode
   bool get isDevelopment => mode == AppMode.development;
+
+  /// Is application running in staging mode
   bool get isStage => mode == AppMode.stage;
+
+  /// List of servers running
   List<HttpServer> get servers => _servers;
 
   /// Memory cached result for chosen route
   Route? route;
 
+  /// Start the servers
   Future<List<HttpServer>> start() async {
     _servers = await server.serve(
       run,
@@ -64,80 +103,102 @@ class Http {
     return _servers;
   }
 
+  /// Initialize a GET route
   Route get(String url) {
     return addRoute(Request.get, url);
   }
 
+  /// Initialize a POST route
   Route post(String url) {
     return addRoute(Request.post, url);
   }
 
+  /// Initialize a PATCH route
   Route patch(String url) {
     return addRoute(Request.patch, url);
   }
 
+  /// Initialize a PUT route
   Route put(String url) {
     return addRoute(Request.put, url);
   }
 
+  /// Initialize a DELETE route
   Route delete(String url) {
     return addRoute(Request.delete, url);
   }
 
+  /// Initialize a wildcard route
   Route wildcard() {
     _wildcardRoute = Route('', '');
     return _wildcardRoute!;
   }
 
+  /// Initialize a init hook
+  /// Init hooks are ran before executing each request
   Hook init() {
     final hook = Hook()..groups(['*']);
     _init.add(hook);
     return hook;
   }
 
+  /// Initialize shutdown hook
+  /// Shutdown hooks are ran after executing the request, before the response is sent
   Hook shutdown() {
     final hook = Hook()..groups(['*']);
     _shutdown.add(hook);
     return hook;
   }
 
+  /// Initialize options hook
+  /// Options hooks are ran for OPTIONS requests
   Hook options() {
     final hook = Hook()..groups(['*']);
     _options.add(hook);
     return hook;
   }
 
+  /// Initialize error hooks
+  /// Error hooks are ran for each errors
   Hook error() {
     final hook = Hook()..groups(['*']);
     _errors.add(hook);
     return hook;
   }
 
+  /// Get environment variable
   static dynamic getEnv(String key, [dynamic def]) {
     return Platform.environment[key] ?? def;
   }
 
+  /// Initialize route
   Route addRoute(String method, String path) {
     final route = Route(method, path);
     _router.addRoute(route);
     return route;
   }
 
+  /// Set resource
+  /// Once set, you can use `inject` to inject
+  /// these resources to set other resources or in the hooks
+  /// and routes
   void setResource(
     String name,
     Function callback, {
     String context = 'utopia',
     List<String> injections = const [],
   }) =>
-      di.set(name, callback, injections: injections, context: context);
+      _di.set(name, callback, injections: injections, context: context);
 
-  dynamic getResource<T>(
+  /// Get a resource
+  T getResource<T>(
     String name, {
     bool fresh = false,
     String context = 'utopia',
   }) =>
-      di.get<T>(name, fresh: fresh, context: context);
+      _di.get<T>(name, fresh: fresh, context: context);
 
+  /// Match route based on request
   Route? match(Request request) {
     var method = request.method;
     method = (method == Request.head) ? Request.get : method;
@@ -145,6 +206,7 @@ class Http {
     return route;
   }
 
+  /// Get arguments for hooks
   Map<String, dynamic> _getArguments(
     Hook hook, {
     required String context,
@@ -161,11 +223,12 @@ class Http {
     });
 
     for (var injection in hook.injections) {
-      args[injection] = di.get(injection);
+      args[injection] = _di.get(injection);
     }
     return args;
   }
 
+  /// Execute list of given hooks
   Future<void> _executeHooks(
     List<Hook> hooks,
     List<String> groups,
@@ -208,6 +271,7 @@ class Http {
     }
   }
 
+  /// Execute request
   FutureOr<Response> execute(
     Route route,
     Request request,
@@ -252,9 +316,9 @@ class Http {
         globalHooksFirst: false,
       );
 
-      return response ?? di.get('response');
+      return response ?? _di.get('response');
     } on Exception catch (e) {
-      di.set('error', () => e);
+      _di.set('error', () => e);
       await _executeHooks(
         _errors,
         groups,
@@ -269,20 +333,21 @@ class Http {
       );
 
       if (e is ValidationException) {
-        final response = di.get('response');
+        final response = _di.get('response');
         response.status = 400;
       }
     }
-    return di.get('response');
+    return _di.get('response');
   }
 
+  /// Run the execution for given request
   FutureOr<Response> run(Request request, String context) async {
-    di.set('request', () => request);
+    _di.set('request', () => request);
 
     try {
-      di.get('response');
+      _di.get('response');
     } catch (e) {
-      di.set('response', () => Response(''));
+      _di.set('response', () => Response(''));
     }
 
     var method = request.method.toUpperCase();
@@ -313,10 +378,10 @@ class Http {
           globalHook: true,
           globalHooksFirst: false,
         );
-        return di.get('response');
+        return _di.get<Response>('response');
       } on Exception catch (e) {
         for (final hook in _errors) {
-          di.set('error', () => e);
+          _di.set('error', () => e);
           if (hook.getGroups().contains('*')) {
             hook.getAction().call(
                   _getArguments(
@@ -327,14 +392,14 @@ class Http {
                 );
           }
         }
-        return di.get('response');
+        return _di.get<Response>('response');
       }
     }
-    final response = di.get('response');
+    final response = _di.get<Response>('response');
     response.text('Not Found');
     response.status = 404;
 
-    di.reset(); // for each run, resources should be re-generated from callbacks
+    _di.reset(); // for each run, resources should be re-generated from callbacks
 
     return response;
   }
@@ -354,9 +419,10 @@ class Http {
     }
   }
 
+  /// Reset various resources
   void reset() {
     _router.reset();
-    di.reset();
+    _di.reset();
     _errors.clear();
     _init.clear();
     _shutdown.clear();
@@ -364,6 +430,7 @@ class Http {
     mode = null;
   }
 
+  /// Close all the servers
   Future<void> closeServer({bool force = false}) async {
     for (final server in _servers) {
       await server.close(force: force);

@@ -6,14 +6,12 @@ void main() async {
   final port = Http.getEnv('PORT', 8080);
   final app = Http(ShelfServer(address, port), threads: 8);
 
-  app
-      .get('/')
-      .inject('request')
-      .inject('response')
-      .action((Request request, Response response) {
-    response.text('Hello world');
-    return response;
-  });
+  app.get('/').inject('request').inject('response').action(
+    (Request request, Response response) {
+      response.text('Hello world');
+      return response;
+    },
+  );
   app
       .get('/hello-world')
       .inject('request')
