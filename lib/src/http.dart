@@ -12,10 +12,18 @@ import 'server.dart';
 import 'validation_exception.dart';
 
 class Http {
-  Http() {
+  Http(
+    this.server, {
+    this.path,
+    this.threads = 1,
+  }) {
     di = DI();
     _router = Router();
   }
+
+  final Server server;
+  final int threads;
+  final String? path;
 
   late DI di;
   final Map<String, Map<String, Route>> _routes = {
@@ -47,11 +55,7 @@ class Http {
   /// Memory cached result for chosen route
   Route? route;
 
-  Future<List<HttpServer>> serve(
-    Server server, {
-    String? path,
-    int threads = 1,
-  }) async {
+  Future<List<HttpServer>> start() async {
     _servers = await server.serve(
       run,
       path: path,
@@ -138,6 +142,7 @@ class Http {
 
   Map<String, dynamic> _getArguments(
     Hook hook, {
+    required String context,
     required Map<String, dynamic> requestParams,
     Map<String, dynamic> values = const {},
   }) {
@@ -198,7 +203,11 @@ class Http {
     }
   }
 
-  FutureOr<Response> execute(Route route, Request request) async {
+  FutureOr<Response> execute(
+    Route route,
+    Request request,
+    String context,
+  ) async {
     final groups = route.getGroups();
     final pathValues = route.getPathValues(request);
 
@@ -208,6 +217,7 @@ class Http {
         groups,
         (hook) async => _getArguments(
           hook,
+          context: context,
           requestParams: await request.getParams(),
           values: pathValues,
         ),
@@ -216,6 +226,7 @@ class Http {
 
       final args = _getArguments(
         route,
+        context: context,
         requestParams: await request.getParams(),
         values: pathValues,
       );
@@ -228,6 +239,7 @@ class Http {
         groups,
         (hook) async => _getArguments(
           hook,
+          context: context,
           requestParams: await request.getParams(),
           values: pathValues,
         ),
@@ -243,6 +255,7 @@ class Http {
         groups,
         (hook) async => _getArguments(
           hook,
+          context: context,
           requestParams: await request.getParams(),
           values: pathValues,
         ),
@@ -258,7 +271,7 @@ class Http {
     return di.get('response');
   }
 
-  FutureOr<Response> run(Request request) async {
+  FutureOr<Response> run(Request request, String context) async {
     di.set('request', () => request);
 
     try {
@@ -281,7 +294,7 @@ class Http {
     }
 
     if (route != null) {
-      return execute(route, request);
+      return execute(route, request, context);
     } else if (method == Request.options) {
       try {
         _executeHooks(
@@ -289,6 +302,7 @@ class Http {
           groups,
           (hook) async => _getArguments(
             hook,
+            context: context,
             requestParams: await request.getParams(),
           ),
           globalHook: true,
@@ -300,7 +314,11 @@ class Http {
           di.set('error', () => e);
           if (hook.getGroups().contains('*')) {
             hook.getAction().call(
-                  _getArguments(hook, requestParams: await request.getParams()),
+                  _getArguments(
+                    hook,
+                    context: context,
+                    requestParams: await request.getParams(),
+                  ),
                 );
           }
         }

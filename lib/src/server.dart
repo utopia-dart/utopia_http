@@ -3,7 +3,7 @@ import 'dart:io';
 import 'request.dart';
 import 'response.dart';
 
-typedef Handler = FutureOr<Response> Function(Request);
+typedef Handler = FutureOr<Response> Function(Request, String);
 
 abstract class Server {
   final int port;

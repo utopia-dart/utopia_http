@@ -105,7 +105,7 @@ class Request {
             value = {
               "file": part,
               "filename": filename,
-              "mimeType": part.headers['Content-Type']
+              "mimeType": part.headers['Content-Type'],
             };
           } else {
             value = (encoding ?? utf8).decodeStream(part);
