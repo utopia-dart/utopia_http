@@ -79,8 +79,8 @@ void initHttp(Http http) {
 }
 
 Future<Http> shelfServer() async {
-  final http = Http();
+  final http = Http(ShelfServer('localhost', 3030), path: 'test/e2e/public');
   initHttp(http);
-  await http.serve(ShelfServer('localhost', 3030), path: 'test/e2e/public');
+  await http.start();
   return http;
 }
