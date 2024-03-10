@@ -1,6 +1,6 @@
 name: utopia_http
 description: A light and easy to get started with HTTP framework for Dart
-version: 0.0.1
+version: 0.1.0
 homepage: https://github.com/utopia-dart/utopia_framework
 
 environment:
@@ -12,7 +12,7 @@ dependencies:
   string_scanner: ^1.2.0
   shelf: ^1.4.1
   shelf_static: ^1.1.2
-  utopia_di: ^0.0.2
+  utopia_di: ^0.1.0
 
 dev_dependencies:
   lints: ^3.0.0
