@@ -63,6 +63,7 @@ class ShelfServer extends Server {
       securityContext: message.securityContext,
       shared: true,
     );
+    print('Worker ${message.context} ready');
     _servers.add(server);
   }
 
