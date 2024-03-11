@@ -1,12 +1,6 @@
-# Utopia Dart Framework
+# Utopia HTTP Server
 
-**NOT READY FOR PRODUCTION**
-
-Light and Fast Dart Framework to build awesome Dart applications. Inspired from [Utopia PHP Framework](https://github.com/utopia-php/framework).
-
-## ⚠️ Warning!
-
-This library is highly volatile and heavily under development.
+Light and Fast Dart HTTP library to build awesome Dart server side applications. Inspired from [Utopia PHP ecosystem](https://github.com/utopia-php).
 
 ## Getting Started
 
@@ -14,33 +8,30 @@ First add the dependency in your pubspec.yaml
 
 ```yaml
 dependencies:
-  utopia_framework:
-    git: https://github.com/utopia-dart/utopia_framework
+  utopia_http: ^0.1.0
 ```
 
 Now, in main.dart, you can
 
 ```dart
 import 'dart:io';
-import 'package:utopia_framework/utopia_framework.dart';
+import 'package:utopia_http/utopia_http.dart';
 
 void main() async {
-  final app = App();
-  app
-      .get('/')
-      .inject('response')
-      .action((Response response) {
-    response.text('Hello World!');
-    return response;
-  });
-
   final address = InternetAddress.anyIPv4;
-  final port = App.getEnv('PORT', 8080);
-  await App.serve(app, ShelfServer(address, port), threads: 3);
-  print("server started at ${address.address}:$port");
-  print('press any key to exit.');
-  stdin.readByteSync();
+  final port = Http.getEnv('PORT', 8080);
+  final app = Http(ShelfServer(address, port), threads: 8);
+
+  app.get('/').inject('request').inject('response').action(
+    (Request request, Response response) {
+      response.text('Hello world');
+      return response;
+    },
+  );
+  
+  await app.start();
 }
+
 ```
 
 ## Copyright and license
