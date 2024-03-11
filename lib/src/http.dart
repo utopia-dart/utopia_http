@@ -95,7 +95,7 @@ class Http {
 
   /// Start the servers
   Future<List<HttpServer>> start() async {
-    _servers = await server.serve(
+    _servers = await server.start(
       run,
       path: path,
       threads: threads,
@@ -223,7 +223,7 @@ class Http {
     });
 
     for (var injection in hook.injections) {
-      args[injection] = _di.get(injection);
+      args[injection] = getResource(injection, context: context);
     }
     return args;
   }
@@ -316,7 +316,7 @@ class Http {
         globalHooksFirst: false,
       );
 
-      return response ?? _di.get('response');
+      return response ?? getResource<Response>('response', context: context);
     } on Exception catch (e) {
       _di.set('error', () => e);
       await _executeHooks(
@@ -333,11 +333,11 @@ class Http {
       );
 
       if (e is ValidationException) {
-        final response = _di.get('response');
+        final response = getResource<Response>('response', context: context);
         response.status = 400;
       }
     }
-    return _di.get('response');
+    return getResource<Response>('response', context: context);
   }
 
   /// Run the execution for given request
@@ -422,7 +422,7 @@ class Http {
 
   /// Reset dependencies
   void resetResources([String? context]) {
-    _di.reset(context);
+    _di.resetResources(context);
   }
 
   /// Reset various resources

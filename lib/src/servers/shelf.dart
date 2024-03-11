@@ -26,6 +26,9 @@ class _IsolateMessage {
   });
 }
 
+/// ShelfServer
+///
+/// Create a server
 class ShelfServer extends Server {
   static final List<HttpServer> _servers = [];
   Handler? handler;
@@ -33,8 +36,9 @@ class ShelfServer extends Server {
 
   ShelfServer(super.address, super.port, {super.securityContext});
 
+  /// Start the server
   @override
-  Future<List<HttpServer>> serve(
+  Future<List<HttpServer>> start(
     Handler handler, {
     String? path,
     int threads = 1,

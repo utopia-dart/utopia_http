@@ -2,7 +2,9 @@ import 'dart:collection';
 
 import 'route.dart';
 
+/// Router
 class Router {
+  /// Placeholder token for route
   static const String placeholderToken = ':::';
 
   Map<String, Map<String, Route>> _routes = {
@@ -15,10 +17,12 @@ class Router {
 
   List<int> _params = [];
 
+  /// Get list of all the routes
   UnmodifiableMapView<String, Map<String, Route>> getRoutes() {
     return UnmodifiableMapView(_routes);
   }
 
+  /// Add a route
   void addRoute(Route route) {
     List<dynamic> result = preparePath(route.path);
     String path = result[0];
@@ -45,6 +49,7 @@ class Router {
     }
   }
 
+  /// Match a route for given method and path
   Route? match(String method, String path) {
     if (!_routes.containsKey(method)) {
       return null;
@@ -88,6 +93,7 @@ class Router {
     return result;
   }
 
+  /// Prepare path
   List<dynamic> preparePath(String path) {
     List<String> parts = path.split('/').where((p) => p.isNotEmpty).toList();
     String prepare = '';
@@ -113,6 +119,7 @@ class Router {
     return [prepare, params];
   }
 
+  /// Reset router
   void reset() {
     _params = [];
     _routes = {
