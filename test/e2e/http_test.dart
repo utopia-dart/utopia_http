@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
-import 'package:utopia_framework/src/app.dart';
+import 'package:utopia_http/utopia_http.dart';
 
 import 'server.dart' as server;
 
 void main() {
-  group('Framework Shelf Server', () {
-    App? app;
+  group('Http Shelf Server', () {
+    Http? http;
     setUp(() async {
-      app = await server.shelfServer();
+      http = await server.shelfServer();
     });
 
     test('Basic Response', basicResponseTest);
@@ -28,7 +28,7 @@ void main() {
     test('file upload', fileUpload);
 
     tearDown(() async {
-      await app?.closeServer();
+      await http?.closeServer();
     });
   });
 }
@@ -69,8 +69,8 @@ void jsonTest() async {
     "email": "email@gmail.com",
     "name": "myname"
   };
-  final stream = Stream.value(utf8.encode(jsonEncode(data)));
-  final res = await stream.pipe(req) as HttpClientResponse;
+  req.write(jsonEncode(data));
+  final res = await req.close();
   final output = await utf8.decodeStream(res);
   expect(res.headers.contentType.toString(), ContentType.json.toString());
   expect(

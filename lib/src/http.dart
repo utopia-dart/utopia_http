@@ -11,13 +11,48 @@ import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
 
-class App {
-  App() {
-    di = DI();
+/// Http class used to bootstrap your Http server
+/// You need to use one of the server adapters. Currently only
+/// Shelf adapter is available
+///
+/// Example:
+/// ```dart
+/// void main() async {
+///   final address = InternetAddress.anyIPv4;
+///   final port = Http.getEnv('PORT', 8080);
+///   final app = Http(ShelfServer(address, port), threads: 8);
+///   // setup routes
+///   app.get('/').inject('request').inject('response').action(
+///     (Request request, Response response) {
+///       response.text('Hello world');
+///       return response;
+///     },
+///   );
+///   // sart the server
+///   await app.start();
+/// }
+/// ```
+class Http {
+  Http(
+    this.server, {
+    this.path,
+    this.threads = 1,
+  }) {
+    _di = DI();
     _router = Router();
   }
 
-  late DI di;
+  /// Server adapter, currently only shelf server is supported
+  final Server server;
+
+  /// Number of threads (isolates) to spawn
+  final int threads;
+
+  /// Path to server static files from
+  final String? path;
+
+  late DI _di;
+
   final Map<String, Map<String, Route>> _routes = {
     Request.get: <String, Route>{},
     Request.post: <String, Route>{},
@@ -26,7 +61,10 @@ class App {
     Request.delete: <String, Route>{},
     Request.head: <String, Route>{},
   };
+
+  /// Configured routes for different methods
   Map<String, Map<String, Route>> get routes => _routes;
+
   final List<Hook> _errors = [];
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
@@ -37,99 +75,130 @@ class App {
 
   Route? _wildcardRoute;
 
+  /// Application mode
   AppMode? mode;
 
+  /// Is application running in production mode
   bool get isProduction => mode == AppMode.production;
+
+  /// Is application running in development mode
   bool get isDevelopment => mode == AppMode.development;
+
+  /// Is application running in staging mode
   bool get isStage => mode == AppMode.stage;
+
+  /// List of servers running
   List<HttpServer> get servers => _servers;
 
   /// Memory cached result for chosen route
   Route? route;
 
-  static Future<List<HttpServer>> serve(
-    App app,
-    Server server, {
-    String? path,
-    int threads = 1,
-  }) async {
-    app._servers = await server.serve(
-      app.run,
+  /// Start the servers
+  Future<List<HttpServer>> start() async {
+    _servers = await server.start(
+      run,
       path: path,
       threads: threads,
     );
-    return app._servers;
+    return _servers;
   }
 
+  /// Initialize a GET route
   Route get(String url) {
     return addRoute(Request.get, url);
   }
 
+  /// Initialize a POST route
   Route post(String url) {
     return addRoute(Request.post, url);
   }
 
+  /// Initialize a PATCH route
   Route patch(String url) {
     return addRoute(Request.patch, url);
   }
 
+  /// Initialize a PUT route
   Route put(String url) {
     return addRoute(Request.put, url);
   }
 
+  /// Initialize a DELETE route
   Route delete(String url) {
     return addRoute(Request.delete, url);
   }
 
+  /// Initialize a wildcard route
   Route wildcard() {
     _wildcardRoute = Route('', '');
     return _wildcardRoute!;
   }
 
+  /// Initialize a init hook
+  /// Init hooks are ran before executing each request
   Hook init() {
     final hook = Hook()..groups(['*']);
     _init.add(hook);
     return hook;
   }
 
+  /// Initialize shutdown hook
+  /// Shutdown hooks are ran after executing the request, before the response is sent
   Hook shutdown() {
     final hook = Hook()..groups(['*']);
     _shutdown.add(hook);
     return hook;
   }
 
+  /// Initialize options hook
+  /// Options hooks are ran for OPTIONS requests
   Hook options() {
     final hook = Hook()..groups(['*']);
     _options.add(hook);
     return hook;
   }
 
+  /// Initialize error hooks
+  /// Error hooks are ran for each errors
   Hook error() {
     final hook = Hook()..groups(['*']);
     _errors.add(hook);
     return hook;
   }
 
+  /// Get environment variable
   static dynamic getEnv(String key, [dynamic def]) {
     return Platform.environment[key] ?? def;
   }
 
+  /// Initialize route
   Route addRoute(String method, String path) {
     final route = Route(method, path);
     _router.addRoute(route);
     return route;
   }
 
+  /// Set resource
+  /// Once set, you can use `inject` to inject
+  /// these resources to set other resources or in the hooks
+  /// and routes
   void setResource(
     String name,
     Function callback, {
+    String context = 'utopia',
     List<String> injections = const [],
   }) =>
-      di.setResource(name, callback, injections: injections);
+      _di.set(name, callback, injections: injections, context: context);
 
-  dynamic getResource(String name, {bool fresh = false}) =>
-      di.getResource(name, fresh: fresh);
+  /// Get a resource
+  T getResource<T>(
+    String name, {
+    bool fresh = false,
+    String context = 'utopia',
+  }) =>
+      _di.get<T>(name, fresh: fresh, context: context);
 
+  /// Match route based on request
   Route? match(Request request) {
     var method = request.method;
     method = (method == Request.head) ? Request.get : method;
@@ -137,8 +206,10 @@ class App {
     return route;
   }
 
+  /// Get arguments for hooks
   Map<String, dynamic> _getArguments(
     Hook hook, {
+    required String context,
     required Map<String, dynamic> requestParams,
     Map<String, dynamic> values = const {},
   }) {
@@ -152,11 +223,12 @@ class App {
     });
 
     for (var injection in hook.injections) {
-      args[injection] = di.getResource(injection);
+      args[injection] = getResource(injection, context: context);
     }
     return args;
   }
 
+  /// Execute list of given hooks
   Future<void> _executeHooks(
     List<Hook> hooks,
     List<String> groups,
@@ -199,7 +271,12 @@ class App {
     }
   }
 
-  FutureOr<Response> execute(Route route, Request request) async {
+  /// Execute request
+  FutureOr<Response> execute(
+    Route route,
+    Request request,
+    String context,
+  ) async {
     final groups = route.getGroups();
     final pathValues = route.getPathValues(request);
 
@@ -209,6 +286,7 @@ class App {
         groups,
         (hook) async => _getArguments(
           hook,
+          context: context,
           requestParams: await request.getParams(),
           values: pathValues,
         ),
@@ -217,6 +295,7 @@ class App {
 
       final args = _getArguments(
         route,
+        context: context,
         requestParams: await request.getParams(),
         values: pathValues,
       );
@@ -229,6 +308,7 @@ class App {
         groups,
         (hook) async => _getArguments(
           hook,
+          context: context,
           requestParams: await request.getParams(),
           values: pathValues,
         ),
@@ -236,14 +316,15 @@ class App {
         globalHooksFirst: false,
       );
 
-      return response ?? di.getResource('response');
+      return response ?? getResource<Response>('response', context: context);
     } on Exception catch (e) {
-      di.setResource('error', () => e);
+      _di.set('error', () => e);
       await _executeHooks(
         _errors,
         groups,
         (hook) async => _getArguments(
           hook,
+          context: context,
           requestParams: await request.getParams(),
           values: pathValues,
         ),
@@ -252,20 +333,21 @@ class App {
       );
 
       if (e is ValidationException) {
-        final response = di.getResource('response');
+        final response = getResource<Response>('response', context: context);
         response.status = 400;
       }
     }
-    return di.getResource('response');
+    return getResource<Response>('response', context: context);
   }
 
-  FutureOr<Response> run(Request request) async {
-    di.setResource('request', () => request);
+  /// Run the execution for given request
+  FutureOr<Response> run(Request request, String context) async {
+    setResource('request', () => request, context: context);
 
     try {
-      di.getResource('response');
+      getResource('response', context: context);
     } catch (e) {
-      di.setResource('response', () => Response(''));
+      setResource('response', () => Response(''), context: context);
     }
 
     var method = request.method.toUpperCase();
@@ -282,7 +364,7 @@ class App {
     }
 
     if (route != null) {
-      return execute(route, request);
+      return execute(route, request, context);
     } else if (method == Request.options) {
       try {
         _executeHooks(
@@ -290,29 +372,35 @@ class App {
           groups,
           (hook) async => _getArguments(
             hook,
+            context: context,
             requestParams: await request.getParams(),
           ),
           globalHook: true,
           globalHooksFirst: false,
         );
-        return di.getResource('response');
+        return getResource<Response>('response', context: context);
       } on Exception catch (e) {
         for (final hook in _errors) {
-          di.setResource('error', () => e);
+          _di.set('error', () => e);
           if (hook.getGroups().contains('*')) {
             hook.getAction().call(
-                  _getArguments(hook, requestParams: await request.getParams()),
+                  _getArguments(
+                    hook,
+                    context: context,
+                    requestParams: await request.getParams(),
+                  ),
                 );
           }
         }
-        return di.getResource('response');
+        return getResource<Response>('response', context: context);
       }
     }
-    final response = di.getResource('response');
+    final response = getResource<Response>('response', context: context);
     response.text('Not Found');
     response.status = 404;
 
-    di.reset(); // for each run, resources should be re-generated from callbacks
+    // for each run, resources should be re-generated from callbacks
+    resetResources(context);
 
     return response;
   }
@@ -332,9 +420,15 @@ class App {
     }
   }
 
+  /// Reset dependencies
+  void resetResources([String? context]) {
+    _di.resetResources(context);
+  }
+
+  /// Reset various resources
   void reset() {
     _router.reset();
-    di.reset();
+    _di.reset();
     _errors.clear();
     _init.clear();
     _shutdown.clear();
@@ -342,6 +436,7 @@ class App {
     mode = null;
   }
 
+  /// Close all the servers
   Future<void> closeServer({bool force = false}) async {
     for (final server in _servers) {
       await server.close(force: force);

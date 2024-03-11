@@ -1,16 +1,17 @@
 import 'dart:io';
-import 'package:utopia_framework/utopia_framework.dart';
+import 'package:utopia_http/utopia_http.dart';
 
 void main() async {
-  final app = App();
-  app
-      .get('/')
-      .inject('request')
-      .inject('response')
-      .action((Request request, Response response) {
-    response.text('Hello world');
-    return response;
-  });
+  final address = InternetAddress.anyIPv4;
+  final port = Http.getEnv('PORT', 8080);
+  final app = Http(ShelfServer(address, port), threads: 8);
+
+  app.get('/').inject('request').inject('response').action(
+    (Request request, Response response) {
+      response.text('Hello world');
+      return response;
+    },
+  );
   app
       .get('/hello-world')
       .inject('request')
@@ -71,10 +72,6 @@ void main() async {
     return response;
   });
 
-  final address = InternetAddress.anyIPv4;
-  final port = App.getEnv('PORT', 8080);
-  await App.serve(app, ShelfServer(address, port), threads: 8);
+  await app.start();
   print("server started at http://${address.address}:$port");
-  print('press any key to exit.');
-  stdin.readByteSync();
 }

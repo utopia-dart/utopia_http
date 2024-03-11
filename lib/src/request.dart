@@ -4,21 +4,49 @@ import 'package:mime/mime.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 class Request {
+  /// GET method
   static const String get = 'GET';
+
+  /// POST method
   static const String post = 'POST';
+
+  /// PUT method
   static const String put = 'PUT';
+
+  /// PATCH method
   static const String patch = 'PATCH';
+
+  /// DELETE method
   static const String delete = 'DELETE';
+
+  /// HEAD method
   static const String head = 'HEAD';
+
+  /// OPTIONS method
   static const String options = 'OPTIONS';
 
+  /// Uri
   final Uri url;
+
+  /// Method
   final String method;
+
+  /// Headers
   final Map<String, String> headers;
+
+  /// All headers
   final Map<String, List<String>> headersAll;
+
+  /// Encoding
   final Encoding? encoding;
+
+  /// Content type
   final String? contentType;
+
+  /// Body
   final Stream<List<int>>? body;
+
+  /// Payload
   Map<String, dynamic>? _payload;
 
   Request(
@@ -31,6 +59,7 @@ class Request {
     this.body,
   });
 
+  /// Get parameter with matching key or return default value
   dynamic getParam(String key, {dynamic defaultValue}) async {
     switch (method) {
       case put:
@@ -44,6 +73,7 @@ class Request {
     }
   }
 
+  /// Get all the parameters
   Future<Map<String, dynamic>> getParams() async {
     switch (method) {
       case put:
@@ -57,6 +87,7 @@ class Request {
     }
   }
 
+  /// Get payload
   dynamic getPayload(String key, {dynamic defaultValue}) async {
     await _generateInput();
     return _payload![key] ?? defaultValue;
@@ -82,10 +113,12 @@ class Request {
     return _payload!;
   }
 
+  /// Get query parameter
   dynamic getQuery(String key, {dynamic defaultValue}) {
     return url.queryParameters[key] ?? defaultValue;
   }
 
+  /// Parse multipart forma data
   Future<Map<String, dynamic>> _multipartFormData() async {
     final data = await _parts
         .map<_FormData?>((part) {
@@ -105,7 +138,7 @@ class Request {
             value = {
               "file": part,
               "filename": filename,
-              "mimeType": part.headers['Content-Type']
+              "mimeType": part.headers['Content-Type'],
             };
           } else {
             value = (encoding ?? utf8).decodeStream(part);
