@@ -1,3 +1,6 @@
-## 0.0.1
+## 0.1.0
 
-- Initial version.
+- Multi threaded HTTP server
+- Easy to use
+- Customizable
+- Inbuilt dependency injection
