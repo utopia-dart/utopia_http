@@ -1,7 +1,7 @@
 name: utopia_http
-description: A light and easy to get started with HTTP framework for Dart
+description: A light and easy to get started with HTTP server library for Dart
 version: 0.1.0
-homepage: https://github.com/utopia-dart/utopia_framework
+homepage: https://github.com/utopia-dart/utopia_http
 
 environment:
   sdk: '>=2.18.0 <4.0.0'
