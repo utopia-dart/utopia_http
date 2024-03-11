@@ -342,12 +342,12 @@ class Http {
 
   /// Run the execution for given request
   FutureOr<Response> run(Request request, String context) async {
-    _di.set('request', () => request);
+    setResource('request', () => request, context: context);
 
     try {
-      _di.get('response');
+      getResource('response', context: context);
     } catch (e) {
-      _di.set('response', () => Response(''));
+      setResource('response', () => Response(''), context: context);
     }
 
     var method = request.method.toUpperCase();
@@ -378,7 +378,7 @@ class Http {
           globalHook: true,
           globalHooksFirst: false,
         );
-        return _di.get<Response>('response');
+        return getResource<Response>('response', context: context);
       } on Exception catch (e) {
         for (final hook in _errors) {
           _di.set('error', () => e);
@@ -392,14 +392,15 @@ class Http {
                 );
           }
         }
-        return _di.get<Response>('response');
+        return getResource<Response>('response', context: context);
       }
     }
-    final response = _di.get<Response>('response');
+    final response = getResource<Response>('response', context: context);
     response.text('Not Found');
     response.status = 404;
 
-    _di.reset(); // for each run, resources should be re-generated from callbacks
+    // for each run, resources should be re-generated from callbacks
+    resetResources(context);
 
     return response;
   }
@@ -417,6 +418,11 @@ class Http {
     } else if (!param.optional) {
       throw ValidationException('Param "$key" is not optional.');
     }
+  }
+
+  /// Reset dependencies
+  void resetResources([String? context]) {
+    _di.reset(context);
   }
 
   /// Reset various resources
