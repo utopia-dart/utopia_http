@@ -28,7 +28,7 @@ void main() {
     test('file upload', fileUpload);
 
     tearDown(() async {
-      await http?.closeServer();
+      await http?.stop();
     });
   });
 }
@@ -67,7 +67,7 @@ void jsonTest() async {
   final data = {
     "userId": "myuserid",
     "email": "email@gmail.com",
-    "name": "myname"
+    "name": "myname",
   };
   req.write(jsonEncode(data));
   final res = await req.close();

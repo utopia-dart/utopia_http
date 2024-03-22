@@ -20,9 +20,12 @@ abstract class Server {
   Server(this.address, this.port, {this.securityContext});
 
   /// Start the server
-  Future<List<HttpServer>> start(
+  Future<void> start(
     Handler handler, {
     String? path,
     int threads = 1,
   });
+
+  /// Stop the server
+  Future<void> stop();
 }

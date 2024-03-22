@@ -69,7 +69,6 @@ class Http {
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
   final List<Hook> _options = [];
-  List<HttpServer> _servers = [];
 
   late final Router _router;
 
@@ -87,20 +86,16 @@ class Http {
   /// Is application running in staging mode
   bool get isStage => mode == AppMode.stage;
 
-  /// List of servers running
-  List<HttpServer> get servers => _servers;
-
   /// Memory cached result for chosen route
   Route? route;
 
   /// Start the servers
-  Future<List<HttpServer>> start() async {
-    _servers = await server.start(
+  Future<void> start() async {
+    await server.start(
       run,
       path: path,
       threads: threads,
     );
-    return _servers;
   }
 
   /// Initialize a GET route
@@ -342,6 +337,7 @@ class Http {
 
   /// Run the execution for given request
   FutureOr<Response> run(Request request, String context) async {
+    setResource('context', () => context, context: context);
     setResource('request', () => request, context: context);
 
     try {
@@ -436,10 +432,8 @@ class Http {
     mode = null;
   }
 
-  /// Close all the servers
-  Future<void> closeServer({bool force = false}) async {
-    for (final server in _servers) {
-      await server.close(force: force);
-    }
+  /// Stop servers
+  Future<void> stop() async {
+    await server.stop();
   }
 }
