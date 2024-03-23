@@ -104,6 +104,7 @@ class Http {
       final supervisor = await _spawn(
         context: i.toString(),
         handler: run,
+        path: path,
       );
       _supervisors.add(supervisor);
       supervisor.resume();
@@ -474,6 +475,8 @@ class Http {
 
   /// Stop servers
   Future<void> stop() async {
-    await server.stop();
+    for (final sup in supervisors) {
+      sup.stop();
+    }
   }
 }

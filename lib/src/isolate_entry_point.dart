@@ -12,10 +12,10 @@ Future<void> entrypoint(IsolateMessage message) async {
   );
 
   message.sendPort.send(receivePort.sendPort);
-  receivePort.listen((message) async {
-    if (message == IsolateSupervisor.messageClose) {
+  receivePort.listen((data) async {
+    if (data == IsolateSupervisor.messageClose) {
       print('server closing');
-      await message.server.close(force: true);
+      await message.server.stop();
       receivePort.close();
     }
   });
