@@ -106,22 +106,24 @@ shelf.Response _toShelfResponse(Response response) {
 
 Future<void> _entrypoint(IsolateMessage message) async {
   final iso.ReceivePort receivePort = iso.ReceivePort();
-  final handler = message.path != null
-      ? shelf.Cascade()
-          .add(createStaticHandler(message.path!))
-          .add(
-            (request) => _handleRequest(
-              request,
-              message.context,
-              message.handler,
-            ),
-          )
-          .handler
-      : (request) => _handleRequest(
+  var handler = (shelf.Request request) => _handleRequest(
+        request,
+        message.context,
+        message.handler,
+      );
+  if (message.path != null) {
+    handler = shelf.Cascade()
+        .add(createStaticHandler(message.path!))
+        .add(
+          (request) => _handleRequest(
             request,
             message.context,
             message.handler,
-          );
+          ),
+        )
+        .handler;
+  }
+
   final server = await shelf_io.serve(
     handler,
     message.address,
