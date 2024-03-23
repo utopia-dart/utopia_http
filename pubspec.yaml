@@ -1,6 +1,6 @@
 name: utopia_http
 description: A light and easy to get started with HTTP server library for Dart
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/utopia-dart/utopia_http
 
 environment:

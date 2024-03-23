@@ -1,15 +1,22 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:utopia_di/utopia_di.dart';
 
 import 'app_mode.dart';
+import 'isolate_entry_point.dart';
+import 'isolate_message.dart';
+import 'isolate_supervisor.dart';
 import 'request.dart';
 import 'response.dart';
 import 'route.dart';
 import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
+
+final List<IsolateSupervisor> _supervisors = [];
 
 /// Http class used to bootstrap your Http server
 /// You need to use one of the server adapters. Currently only
@@ -42,6 +49,8 @@ class Http {
     _router = Router();
   }
 
+  List<IsolateSupervisor> get supervisors => _supervisors;
+
   /// Server adapter, currently only shelf server is supported
   final Server server;
 
@@ -69,7 +78,6 @@ class Http {
   final List<Hook> _init = [];
   final List<Hook> _shutdown = [];
   final List<Hook> _options = [];
-  List<HttpServer> _servers = [];
 
   late final Router _router;
 
@@ -87,20 +95,50 @@ class Http {
   /// Is application running in staging mode
   bool get isStage => mode == AppMode.stage;
 
-  /// List of servers running
-  List<HttpServer> get servers => _servers;
-
   /// Memory cached result for chosen route
   Route? route;
 
   /// Start the servers
-  Future<List<HttpServer>> start() async {
-    _servers = await server.start(
-      run,
+  Future<void> start() async {
+    _supervisors.clear();
+    for (int i = 0; i < threads; i++) {
+      final supervisor = await _spawn(
+        context: i.toString(),
+        handler: run,
+        path: path,
+      );
+      _supervisors.add(supervisor);
+      supervisor.resume();
+      dev.log('Worker ${i.toString()} ready.', name: 'FINE');
+    }
+  }
+
+  Future<IsolateSupervisor> _spawn({
+    required String context,
+    required Handler handler,
+    SecurityContext? securityContext,
+    String? path,
+  }) async {
+    final receivePort = ReceivePort();
+    final message = IsolateMessage(
+      server: server,
+      context: context,
+      handler: run,
+      securityContext: securityContext,
       path: path,
-      threads: threads,
+      sendPort: receivePort.sendPort,
     );
-    return _servers;
+    final isolate = await Isolate.spawn(
+      entrypoint,
+      message,
+      paused: true,
+      debugName: 'isolate_$context',
+    );
+    return IsolateSupervisor(
+      isolate: isolate,
+      receivePort: receivePort,
+      context: message.context,
+    );
   }
 
   /// Initialize a GET route
@@ -342,6 +380,7 @@ class Http {
 
   /// Run the execution for given request
   FutureOr<Response> run(Request request, String context) async {
+    setResource('context', () => context, context: context);
     setResource('request', () => request, context: context);
 
     try {
@@ -436,10 +475,10 @@ class Http {
     mode = null;
   }
 
-  /// Close all the servers
-  Future<void> closeServer({bool force = false}) async {
-    for (final server in _servers) {
-      await server.close(force: force);
+  /// Stop servers
+  Future<void> stop() async {
+    for (final sup in supervisors) {
+      sup.stop();
     }
   }
 }
