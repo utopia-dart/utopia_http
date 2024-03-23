@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:developer' as dev;
 
 import 'package:utopia_di/utopia_di.dart';
 
@@ -108,6 +109,7 @@ class Http {
       );
       _supervisors.add(supervisor);
       supervisor.resume();
+      dev.log('Worker ${i.toString()} ready.', name: 'Fine');
     }
   }
 
