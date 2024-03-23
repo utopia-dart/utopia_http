@@ -18,10 +18,9 @@ final List<IsolateSupervisor> _isolates = [];
 ///
 /// Create a server
 class ShelfServer extends Server {
-  Handler? handler;
-  String? path;
-
   ShelfServer(super.address, super.port, {super.securityContext});
+
+  List<IsolateSupervisor> get isolates => _isolates;
 
   /// Start the server
   @override
@@ -30,21 +29,33 @@ class ShelfServer extends Server {
     String? path,
     int threads = 1,
   }) async {
-    this.handler = handler;
-    this.path = path;
-
+    isolates.clear();
     for (var i = 0; i < threads; i++) {
-      final sup = await _spawn(i.toString());
+      final sup = await _spawn(
+        context: i.toString(),
+        handler: handler,
+        path: path,
+        securityContext: securityContext,
+        address: address,
+        port: port,
+      );
       _isolates.add(sup);
-      sup.isolate.resume(sup.isolate.pauseCapability!);
+      sup.resume();
     }
   }
 
-  Future<IsolateSupervisor> _spawn(String context) async {
+  Future<IsolateSupervisor> _spawn({
+    required String context,
+    required Handler handler,
+    required Object address,
+    required int port,
+    SecurityContext? securityContext,
+    String? path,
+  }) async {
     final receivePort = iso.ReceivePort();
     final message = IsolateMessage(
       context: context,
-      handler: handler!,
+      handler: handler,
       address: address,
       port: port,
       securityContext: securityContext,
@@ -59,7 +70,6 @@ class ShelfServer extends Server {
     );
     return IsolateSupervisor(
       isolate: isolate,
-      isolateSendPort: receivePort.sendPort,
       receivePort: receivePort,
       context: message.context,
     );

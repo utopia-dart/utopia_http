@@ -4,27 +4,29 @@ class IsolateSupervisor {
   final iso.Isolate isolate;
   final iso.ReceivePort receivePort;
   final String context;
-  iso.SendPort? isolateSendPort;
+  iso.SendPort? _isolateSendPort;
 
   static const String messageClose = '_CLOSE';
 
   IsolateSupervisor({
     required this.isolate,
-    required this.isolateSendPort,
     required this.receivePort,
     required this.context,
-  }) {
+  });
+
+  void resume() {
     receivePort.listen(listen);
+    isolate.resume(isolate.pauseCapability!);
   }
 
   void stop() {
-    isolateSendPort?.send(messageClose);
+    _isolateSendPort?.send(messageClose);
     receivePort.close();
   }
 
   void listen(dynamic message) async {
     if (message is iso.SendPort) {
-      isolateSendPort = message;
+      _isolateSendPort = message;
     }
   }
 }
