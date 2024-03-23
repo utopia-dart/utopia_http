@@ -22,8 +22,8 @@ abstract class Server {
   /// Start the server
   Future<void> start(
     Handler handler, {
+    String context = 'utopia',
     String? path,
-    int threads = 1,
   });
 
   /// Stop the server

@@ -1,15 +1,21 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:utopia_di/utopia_di.dart';
 
 import 'app_mode.dart';
+import 'isolate_entry_point.dart';
+import 'isolate_message.dart';
+import 'isolate_supervisor.dart';
 import 'request.dart';
 import 'response.dart';
 import 'route.dart';
 import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
+
+final List<IsolateSupervisor> _supervisors = [];
 
 /// Http class used to bootstrap your Http server
 /// You need to use one of the server adapters. Currently only
@@ -41,6 +47,8 @@ class Http {
     _di = DI();
     _router = Router();
   }
+
+  List<IsolateSupervisor> get supervisors => _supervisors;
 
   /// Server adapter, currently only shelf server is supported
   final Server server;
@@ -91,10 +99,42 @@ class Http {
 
   /// Start the servers
   Future<void> start() async {
-    await server.start(
-      run,
+    _supervisors.clear();
+    for (int i = 0; i < threads; i++) {
+      final supervisor = await _spawn(
+        context: i.toString(),
+        handler: run,
+      );
+      _supervisors.add(supervisor);
+      supervisor.resume();
+    }
+  }
+
+  Future<IsolateSupervisor> _spawn({
+    required String context,
+    required Handler handler,
+    SecurityContext? securityContext,
+    String? path,
+  }) async {
+    final receivePort = ReceivePort();
+    final message = IsolateMessage(
+      server: server,
+      context: context,
+      handler: run,
+      securityContext: securityContext,
       path: path,
-      threads: threads,
+      sendPort: receivePort.sendPort,
+    );
+    final isolate = await Isolate.spawn(
+      entrypoint,
+      message,
+      paused: true,
+      debugName: 'isolate_$context',
+    );
+    return IsolateSupervisor(
+      isolate: isolate,
+      receivePort: receivePort,
+      context: message.context,
     );
   }
 
