@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:isolate';
 
 import 'isolate_message.dart';
@@ -14,6 +15,10 @@ Future<void> entrypoint(IsolateMessage message) async {
   message.sendPort.send(receivePort.sendPort);
   receivePort.listen((data) async {
     if (data == IsolateSupervisor.messageClose) {
+      dev.log(
+        'Received close message on isolate ${message.context}',
+        name: 'FINE',
+      );
       await message.server.stop();
       receivePort.close();
     }

@@ -109,7 +109,7 @@ class Http {
       );
       _supervisors.add(supervisor);
       supervisor.resume();
-      dev.log('Worker ${i.toString()} ready.', name: 'Fine');
+      dev.log('Worker ${i.toString()} ready.', name: 'FINE');
     }
   }
 

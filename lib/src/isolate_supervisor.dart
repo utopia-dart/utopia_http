@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:isolate' as iso;
 
 class IsolateSupervisor {
@@ -20,6 +21,7 @@ class IsolateSupervisor {
   }
 
   void stop() {
+    dev.log('Stopping isolate $context', name: 'FINE');
     _isolateSendPort?.send(messageClose);
     receivePort.close();
   }
