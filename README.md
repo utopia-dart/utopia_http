@@ -54,10 +54,6 @@ app
   });
 ```
 
-curl http://localhost:8000/hello-world
-curl http://localhost:8000/hello-world?name=Utopia
-curl http://localhost:8000/hello-world?name=Appwrite
-
 ```bash
 curl http://localhost:8000/hello-world
 curl http://localhost:8000/hello-world?name=Utopia
