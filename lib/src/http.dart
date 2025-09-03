@@ -480,5 +480,11 @@ class Http {
     for (final sup in supervisors) {
       sup.stop();
     }
+    _supervisors.clear();
+  }
+
+  /// Dispose all resources
+  void dispose() {
+    reset();
   }
 }

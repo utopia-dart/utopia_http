@@ -5,6 +5,7 @@ library utopia_framework;
 
 export 'src/app_mode.dart';
 export 'src/http.dart';
+export 'src/http_dev.dart';
 export 'src/request.dart';
 export 'src/response.dart';
 export 'src/route.dart';
