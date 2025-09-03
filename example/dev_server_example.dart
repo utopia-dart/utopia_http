@@ -5,7 +5,7 @@ void main() async {
   await HttpDev.start(
     script: () async {
       final address = InternetAddress.anyIPv4;
-      final port = Http.getEnv('PORT', 8080);
+      final port = int.tryParse(Http.getEnv('PORT', '8080')) ?? 8080;
 
       print('🚀 Starting Utopia HTTP Server with Hot Reload...');
       print('🌐 Address: ${address.address}:$port');
@@ -15,12 +15,13 @@ void main() async {
       final app = Http(
         ShelfServer(address, port),
         threads: 2,
+        mode: AppMode.development,
       );
 
       // Define routes
       app.get('/').inject('response').action((Response response) {
         response.text(
-          'Hello from Utopia HTTP with Hot Reload! 🔥 [AUTO-RELOAD sachai ho?]',
+          'Hello from Utopia HTTP with Hot Reload! 🔥 [AUTO-RELOAD Active?]',
         );
         return response;
       });
@@ -75,16 +76,6 @@ void main() async {
 
       try {
         await app.start();
-        print('✅ Server started successfully!');
-        print('🌐 Server URL: http://${address.address}:${app.server.port}');
-        print('');
-        print('📡 Available endpoints:');
-        print('  GET  /                - Hello message');
-        print('  GET  /api/status      - Server status');
-        print('  GET  /api/hello/:name - Personalized greeting');
-        print('');
-        print('🔥 Hot reload is active - edit this file to see changes!');
-        print('');
 
         // Keep the server running
         await ProcessSignal.sigint.watch().first;
