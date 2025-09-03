@@ -1,14 +1,9 @@
 import 'dart:async';
-import 'dart:developer' as dev;
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:utopia_di/utopia_di.dart';
 
 import 'app_mode.dart';
-import 'isolate_entry_point.dart';
-import 'isolate_message.dart';
-import 'isolate_supervisor.dart';
 import 'request.dart';
 import 'response.dart';
 import 'route.dart';
@@ -16,26 +11,21 @@ import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
 
-final List<IsolateSupervisor> _supervisors = [];
-
-/// Http class used to bootstrap your Http server
-/// You need to use one of the server adapters. Currently only
-/// Shelf adapter is available
+/// Http class used to bootstrap your Http server with async request handling
+///
+/// Simple single-process HTTP server with async support.
 ///
 /// Example:
 /// ```dart
 /// void main() async {
-///   final address = InternetAddress.anyIPv4;
-///   final port = Http.getEnv('PORT', 8080);
-///   final app = Http(ShelfServer(address, port), threads: 8);
-///   // setup routes
-///   app.get('/').inject('request').inject('response').action(
-///     (Request request, Response response) {
-///       response.text('Hello world');
-///       return response;
-///     },
+///   final app = Http(
+///     ShelfServer(InternetAddress.anyIPv4, 8080),
 ///   );
-///   // sart the server
+///
+///   app.get('/').action((Request request) {
+///     return Response('Hello world');
+///   });
+///
 ///   await app.start();
 /// }
 /// ```
@@ -43,23 +33,20 @@ class Http {
   Http(
     this.server, {
     this.path,
-    this.threads = 1,
     this.mode,
   }) {
     _di = DI();
     _router = Router();
   }
 
-  List<IsolateSupervisor> get supervisors => _supervisors;
-
   /// Server adapter, currently only shelf server is supported
   final Server server;
 
-  /// Number of threads (isolates) to spawn
-  final int threads;
-
   /// Path to server static files from
   final String? path;
+
+  /// Application mode
+  AppMode? mode;
 
   late DI _di;
 
@@ -84,9 +71,6 @@ class Http {
 
   Route? _wildcardRoute;
 
-  /// Application mode
-  AppMode? mode;
-
   /// Is application running in production mode
   bool get isProduction => mode == AppMode.production;
 
@@ -99,13 +83,13 @@ class Http {
   /// Memory cached result for chosen route
   Route? route;
 
-  /// Start the servers
+  /// Start the server
   Future<void> start() async {
     if (isDevelopment) {
       print('[UtopiaHttp] Starting HTTP server in DEVELOPMENT mode');
       print('[UtopiaHttp]   Address: \x1b[32m${server.address}\x1b[0m');
       print('[UtopiaHttp]   Port: \x1b[32m${server.port}\x1b[0m');
-      print('[UtopiaHttp]   Threads: $threads');
+      print('[UtopiaHttp]   Scaling: SINGLE');
       print(
         '[UtopiaHttp]   System: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
       );
@@ -113,51 +97,20 @@ class Http {
       print('[UtopiaHttp]   Process ID: $pid');
       print('[UtopiaHttp]   Working Directory: ${Directory.current.path}');
     }
-    _supervisors.clear();
-    for (int i = 0; i < threads; i++) {
-      final supervisor = await _spawn(
-        context: i.toString(),
-        handler: run,
-        path: path,
-      );
-      _supervisors.add(supervisor);
-      supervisor.resume();
-      if (isDevelopment) {
-        print('[UtopiaHttp] Worker $i ready (development mode)');
-      } else {
-        dev.log('Worker ${i.toString()} ready.', name: 'FINE');
-      }
-    }
+
+    // Start the server
+    await _startServerInstance(server);
+
     if (isDevelopment) {
-      print('[UtopiaHttp] All $threads worker(s) started successfully');
+      print('[UtopiaHttp] Server started successfully');
     }
   }
 
-  Future<IsolateSupervisor> _spawn({
-    required String context,
-    required Handler handler,
-    SecurityContext? securityContext,
-    String? path,
-  }) async {
-    final receivePort = ReceivePort();
-    final message = IsolateMessage(
-      server: server,
-      context: context,
-      handler: run,
-      securityContext: securityContext,
+  /// Start the actual server instance
+  Future<void> _startServerInstance(Server serverInstance) async {
+    await serverInstance.start(
+      run,
       path: path,
-      sendPort: receivePort.sendPort,
-    );
-    final isolate = await Isolate.spawn(
-      entrypoint,
-      message,
-      paused: true,
-      debugName: 'isolate_$context',
-    );
-    return IsolateSupervisor(
-      isolate: isolate,
-      receivePort: receivePort,
-      context: message.context,
     );
   }
 
@@ -529,14 +482,14 @@ class Http {
   /// Stop servers
   Future<void> stop() async {
     if (isDevelopment) {
-      print('[UtopiaHttp] Stopping all server workers...');
+      print('[UtopiaHttp] Stopping server...');
     }
-    for (final sup in supervisors) {
-      sup.stop();
-    }
-    _supervisors.clear();
+
+    // Stop the main server
+    await server.stop();
+
     if (isDevelopment) {
-      print('[UtopiaHttp] All server workers stopped.');
+      print('[UtopiaHttp] Server stopped.');
     }
   }
 

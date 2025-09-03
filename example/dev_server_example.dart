@@ -14,14 +14,13 @@ void main() async {
       // Create HTTP server
       final app = Http(
         ShelfServer(address, port),
-        threads: 2,
         mode: AppMode.development,
       );
 
       // Define routes
       app.get('/').inject('response').action((Response response) {
         response.text(
-          'Hello from Utopia HTTP with Hot Reload! 🔥 [AUTO-RELOAD Active?]',
+          'Hello from Utopia HTTP with Hot Reload! 🔥 [AUTO-RELOAD Server]',
         );
         return response;
       });

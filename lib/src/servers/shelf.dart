@@ -46,7 +46,7 @@ class ShelfServer extends Server {
       address,
       port,
       securityContext: securityContext,
-      shared: true,
+      shared: false, // Changed from true to false for single process mode
     );
   }
 

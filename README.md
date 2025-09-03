@@ -19,8 +19,8 @@ import 'package:utopia_http/utopia_http.dart';
 
 void main() async {
   final address = InternetAddress.anyIPv4;
-  final port = Http.getEnv('PORT', 8000);
-  final app = Http(ShelfServer(address, port), threads: 8);
+  final port = Http.getEnv('PORT', 8080);
+  final app = Http(ShelfServer(address, port));
 
   app.get('/').inject('request').inject('response').action(
     (Request request, Response response) {
@@ -31,7 +31,40 @@ void main() async {
   
   await app.start();
 }
+```
 
+## Simple Async Server
+
+Utopia HTTP focuses on simplicity with single-process async request handling:
+
+```dart
+import 'dart:io';
+import 'package:utopia_http/utopia_http.dart';
+
+void main() async {
+  final app = Http(ShelfServer(InternetAddress.anyIPv4, 8080));
+
+  // Simple route
+  app
+      .get('/')
+      .inject('response')
+      .action((Response response) {
+    response.text('Hello World!');
+    return response;
+  });
+
+  // Async I/O operations (non-blocking)
+  app
+      .get('/io')
+      .inject('response')
+      .action((Response response) async {
+    await Future.delayed(Duration(milliseconds: 100));
+    response.text('I/O operation completed');
+    return response;
+  });
+
+  await app.start();
+}
 ```
 
 ## Hot Reload Development Server
@@ -46,8 +79,8 @@ void main() async {
   await HttpDev.start(
     script: () async {
       final address = InternetAddress.anyIPv4;
-      final port = Http.getEnv('PORT', 8000);
-      final app = Http(ShelfServer(address, port), threads: 8);
+      final port = Http.getEnv('PORT', 8080);
+      final app = Http(ShelfServer(address, port));
 
       app.get('/').inject('response').action((Response response) {
         response.text('Hello World with Hot Reload! 🔥');
@@ -62,9 +95,25 @@ void main() async {
 }
 ```
 
-
-
 See [HOT_RELOAD.md](HOT_RELOAD.md) for detailed documentation.
+
+## Advanced Scaling
+
+For high-traffic applications that need multi-process scaling or load balancing, check out the separate `utopia_loadbalancer` package:
+
+```yaml
+dependencies:
+  utopia_http: ^0.1.0
+  utopia_loadbalancer: ^1.0.0  # Optional for advanced scaling
+```
+
+The `utopia_loadbalancer` package provides:
+- **Cluster Mode**: Multiple processes with load balancing
+- **Hybrid Mode**: CPU-intensive work delegation to isolates
+- **Built-in Load Balancer**: Round-robin, least-connections, random strategies
+- **Auto-restart**: Fault tolerance and process monitoring
+
+For most applications, the simple single-process async approach in the core package is sufficient and much easier to deploy and debug.
 
 ## Features
 

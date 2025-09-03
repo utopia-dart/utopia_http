@@ -1,5 +1,7 @@
 /// Utopia Framework is a Dart http framework with minimal must-have
-/// features for profressional, simple, advanced and secure web development
+/// features for professional, simple, advanced and secure web development
+///
+/// Simple single-process HTTP server with async support.
 ///
 library utopia_framework;
 
