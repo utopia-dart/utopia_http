@@ -44,6 +44,7 @@ class Http {
     this.server, {
     this.path,
     this.threads = 1,
+    this.mode,
   }) {
     _di = DI();
     _router = Router();
@@ -100,6 +101,18 @@ class Http {
 
   /// Start the servers
   Future<void> start() async {
+    if (isDevelopment) {
+      print('[UtopiaHttp] Starting HTTP server in DEVELOPMENT mode');
+      print('[UtopiaHttp]   Address: \x1b[32m${server.address}\x1b[0m');
+      print('[UtopiaHttp]   Port: \x1b[32m${server.port}\x1b[0m');
+      print('[UtopiaHttp]   Threads: $threads');
+      print(
+        '[UtopiaHttp]   System: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+      );
+      print('[UtopiaHttp]   Dart Version: ${Platform.version}');
+      print('[UtopiaHttp]   Process ID: $pid');
+      print('[UtopiaHttp]   Working Directory: ${Directory.current.path}');
+    }
     _supervisors.clear();
     for (int i = 0; i < threads; i++) {
       final supervisor = await _spawn(
@@ -109,7 +122,14 @@ class Http {
       );
       _supervisors.add(supervisor);
       supervisor.resume();
-      dev.log('Worker ${i.toString()} ready.', name: 'FINE');
+      if (isDevelopment) {
+        print('[UtopiaHttp] Worker $i ready (development mode)');
+      } else {
+        dev.log('Worker ${i.toString()} ready.', name: 'FINE');
+      }
+    }
+    if (isDevelopment) {
+      print('[UtopiaHttp] All $threads worker(s) started successfully');
     }
   }
 
@@ -241,6 +261,16 @@ class Http {
     var method = request.method;
     method = (method == Request.head) ? Request.get : method;
     route = _router.match(method, request.url.path);
+    if (isDevelopment) {
+      print(
+        '[UtopiaHttp] Matching route: method=$method, path=${request.url.path}',
+      );
+      if (route != null) {
+        print('[UtopiaHttp] Matched route: ${route?.path}');
+      } else {
+        print('[UtopiaHttp] No route matched for path: ${request.url.path}');
+      }
+    }
     return route;
   }
 
@@ -380,6 +410,9 @@ class Http {
 
   /// Run the execution for given request
   FutureOr<Response> run(Request request, String context) async {
+    if (isDevelopment) {
+      print('[UtopiaHttp] Handling request: ${request.method} ${request.url}');
+    }
     setResource('context', () => context, context: context);
     setResource('request', () => request, context: context);
 
@@ -400,11 +433,24 @@ class Http {
     if (route == null && _wildcardRoute != null) {
       route = _wildcardRoute;
       route!.path = request.url.path;
+      if (isDevelopment) {
+        print(
+          '[UtopiaHttp] Using wildcard route for path: ${request.url.path}',
+        );
+      }
     }
 
     if (route != null) {
+      if (isDevelopment) {
+        print('[UtopiaHttp] Executing route: ${route.path}');
+      }
       return execute(route, request, context);
     } else if (method == Request.options) {
+      if (isDevelopment) {
+        print(
+          '[UtopiaHttp] Handling OPTIONS request for path: ${request.url.path}',
+        );
+      }
       try {
         _executeHooks(
           _options,
@@ -437,6 +483,11 @@ class Http {
     final response = getResource<Response>('response', context: context);
     response.text('Not Found');
     response.status = 404;
+    if (isDevelopment) {
+      print(
+        '[UtopiaHttp] Responding with 404 Not Found for path: ${request.url.path}',
+      );
+    }
 
     // for each run, resources should be re-generated from callbacks
     resetResources(context);
@@ -477,8 +528,26 @@ class Http {
 
   /// Stop servers
   Future<void> stop() async {
+    if (isDevelopment) {
+      print('[UtopiaHttp] Stopping all server workers...');
+    }
     for (final sup in supervisors) {
       sup.stop();
+    }
+    _supervisors.clear();
+    if (isDevelopment) {
+      print('[UtopiaHttp] All server workers stopped.');
+    }
+  }
+
+  /// Dispose all resources
+  void dispose() {
+    if (isDevelopment) {
+      print('[UtopiaHttp] Disposing server resources...');
+    }
+    reset();
+    if (isDevelopment) {
+      print('[UtopiaHttp] Server resources disposed.');
     }
   }
 }

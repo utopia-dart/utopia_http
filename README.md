@@ -34,6 +34,38 @@ void main() async {
 
 ```
 
+## Hot Reload Development Server
+
+Utopia HTTP provides true hot reload functionality for faster development. Use `HttpDev.start()` to automatically restart your server when code changes:
+
+```dart
+import 'dart:io';
+import 'package:utopia_http/utopia_http.dart';
+
+void main() async {
+  await HttpDev.start(
+    script: () async {
+      final address = InternetAddress.anyIPv4;
+      final port = Http.getEnv('PORT', 8000);
+      final app = Http(ShelfServer(address, port), threads: 8);
+
+      app.get('/').inject('response').action((Response response) {
+        response.text('Hello World with Hot Reload! 🔥');
+        return response;
+      });
+      
+      await app.start();
+    },
+    watchPaths: ['lib', 'example'],  // Directories to watch
+    watchExtensions: ['.dart'],      // File extensions to monitor
+  );
+}
+```
+
+
+
+See [HOT_RELOAD.md](HOT_RELOAD.md) for detailed documentation.
+
 ## Features
 
 ### Parameters
