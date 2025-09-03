@@ -20,8 +20,8 @@ void main() {
     });
 
     test('can be thrown and caught', () {
-      expect(() => throw ValidationException('Error'), 
-             throwsA(isA<ValidationException>()));
+      expect(() => throw ValidationException('Error'),
+          throwsA(isA<ValidationException>()));
     });
 
     test('message property is accessible', () {

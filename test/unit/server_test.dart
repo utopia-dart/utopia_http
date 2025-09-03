@@ -9,7 +9,7 @@ void main() {
       expect(server.port, 8080);
       expect(server.address, InternetAddress.loopbackIPv4);
     });
-    
+
     test('has correct default properties', () {
       final server = ShelfServer(InternetAddress.loopbackIPv4, 3000);
       expect(server.port, 3000);
