@@ -23,3 +23,4 @@ doc/api/
 **/*test.http
 coverage
 pubspec_overrides.yaml
+packages/utopia_loadbalancer/example/cluster_example.exe

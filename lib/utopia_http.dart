@@ -2,12 +2,12 @@
 /// features for professional, simple, advanced and secure web development
 ///
 /// Simple single-process HTTP server with async support.
+/// For hot reload functionality, use the separate utopia_hotreload package.
 ///
 library utopia_framework;
 
 export 'src/app_mode.dart';
 export 'src/http.dart';
-export 'src/http_dev.dart';
 export 'src/request.dart';
 export 'src/response.dart';
 export 'src/route.dart';
