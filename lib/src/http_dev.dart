@@ -38,7 +38,7 @@ class HttpDev {
       '.git/',
       '.dart_tool/',
       'build/',
-      'test/'
+      'test/',
     ],
   }) async {
     // Check if we're already in a child process (to avoid infinite recursion)

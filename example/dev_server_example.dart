@@ -20,7 +20,8 @@ void main() async {
       // Define routes
       app.get('/').inject('response').action((Response response) {
         response.text(
-            'Hello from Utopia HTTP with Hot Reload! 🔥 [AUTO-RELOAD sachai ho?]');
+          'Hello from Utopia HTTP with Hot Reload! 🔥 [AUTO-RELOAD sachai ho?]',
+        );
         return response;
       });
 
@@ -38,7 +39,10 @@ void main() async {
       app
           .get('/api/hello/:name')
           .param(
-              key: 'name', defaultValue: 'World', description: 'Name to greet')
+            key: 'name',
+            defaultValue: 'World',
+            description: 'Name to greet',
+          )
           .inject('response')
           .action((String name, Response response) {
         response.json({
