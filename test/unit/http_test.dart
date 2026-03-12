@@ -89,6 +89,11 @@ void main() async {
       final http1 = Http(ShelfServer('localhost', 8083));
       final http2 = Http(ShelfServer('localhost', 8084));
       expect(identical(http1.supervisors, http2.supervisors), isFalse);
+      expect(http1.supervisors, isEmpty);
+      expect(http2.supervisors, isEmpty);
+      // Verify that modifying one instance's supervisors doesn't affect the other
+      expect(http1.supervisors.length, 0);
+      expect(http2.supervisors.length, 0);
     });
   });
 }
