@@ -57,6 +57,7 @@ class Response {
   /// Set json response
   void json(Map<String, dynamic> data, {int status = HttpStatus.ok}) {
     contentType = ContentType.json;
+    this.status = status;
     body = jsonEncode(data);
   }
 

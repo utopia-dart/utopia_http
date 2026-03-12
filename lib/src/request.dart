@@ -167,8 +167,10 @@ class Request {
   }
 
   String? _extractBoundary() {
-    if (!headers.containsKey('Content-Type')) return null;
-    final contentType = MediaType.parse(headers['Content-Type']!);
+    final ctHeader =
+        headers['Content-Type'] ?? headers['content-type'];
+    if (ctHeader == null) return null;
+    final contentType = MediaType.parse(ctHeader);
     if (contentType.type != 'multipart') return null;
 
     return contentType.parameters['boundary'];
