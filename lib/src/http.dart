@@ -16,8 +16,6 @@ import 'router.dart';
 import 'server.dart';
 import 'validation_exception.dart';
 
-final List<IsolateSupervisor> _supervisors = [];
-
 /// Http class used to bootstrap your Http server
 /// You need to use one of the server adapters. Currently only
 /// Shelf adapter is available
@@ -49,6 +47,8 @@ class Http {
     _di = DI();
     _router = Router();
   }
+
+  final List<IsolateSupervisor> _supervisors = [];
 
   List<IsolateSupervisor> get supervisors => _supervisors;
 
@@ -318,7 +318,7 @@ class Http {
 
     Future<void> executeGroupHooks() async {
       for (final group in groups) {
-        for (final hook in _init) {
+        for (final hook in hooks) {
           if (hook.getGroups().contains(group)) {
             final arguments = await argsCallback.call(hook);
             Function.apply(
@@ -440,11 +440,12 @@ class Http {
       }
     }
 
+    Response response;
     if (route != null) {
       if (isDevelopment) {
         print('[UtopiaHttp] Executing route: ${route.path}');
       }
-      return execute(route, request, context);
+      response = await execute(route, request, context);
     } else if (method == Request.options) {
       if (isDevelopment) {
         print(
@@ -452,7 +453,7 @@ class Http {
         );
       }
       try {
-        _executeHooks(
+        await _executeHooks(
           _options,
           groups,
           (hook) async => _getArguments(
@@ -463,7 +464,7 @@ class Http {
           globalHook: true,
           globalHooksFirst: false,
         );
-        return getResource<Response>('response', context: context);
+        response = getResource<Response>('response', context: context);
       } on Exception catch (e) {
         for (final hook in _errors) {
           _di.set('error', () => e);
@@ -477,16 +478,17 @@ class Http {
                 );
           }
         }
-        return getResource<Response>('response', context: context);
+        response = getResource<Response>('response', context: context);
       }
-    }
-    final response = getResource<Response>('response', context: context);
-    response.text('Not Found');
-    response.status = 404;
-    if (isDevelopment) {
-      print(
-        '[UtopiaHttp] Responding with 404 Not Found for path: ${request.url.path}',
-      );
+    } else {
+      response = getResource<Response>('response', context: context);
+      response.text('Not Found');
+      response.status = 404;
+      if (isDevelopment) {
+        print(
+          '[UtopiaHttp] Responding with 404 Not Found for path: ${request.url.path}',
+        );
+      }
     }
 
     // for each run, resources should be re-generated from callbacks

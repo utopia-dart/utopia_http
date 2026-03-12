@@ -13,6 +13,7 @@ class Router {
     'PUT': {},
     'PATCH': {},
     'DELETE': {},
+    'HEAD': {},
   };
 
   List<int> _params = [];
@@ -128,6 +129,7 @@ class Router {
       'PUT': {},
       'PATCH': {},
       'DELETE': {},
+      'HEAD': {},
     };
   }
 }
